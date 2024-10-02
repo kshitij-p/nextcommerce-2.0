@@ -274,7 +274,7 @@ export default function ProductListing() {
                         {product.name}
                       </Link>
                       <p className="font-semibold leading-none">
-                        ${Math.round(+product.price / 100)}
+                        ${+product.price / 100}
                       </p>
                     </div>
                   </div>

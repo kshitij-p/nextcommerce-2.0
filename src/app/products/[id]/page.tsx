@@ -1,12 +1,14 @@
 "use client";
 
 import { type Product } from "@prisma/client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { Button } from "~/components/ui/button";
 import { MAX_STALE_TIME } from "~/constants";
 import { api } from "~/trpc/react";
 
 const ProductPage = () => {
+  const router = useRouter();
   const utils = api.useUtils();
 
   const { id } = useParams<{ id: string }>();
@@ -115,6 +117,17 @@ const ProductPage = () => {
     },
   });
 
+  const { mutateAsync: deleteProduct } = api.product.delete.useMutation({
+    onSuccess: async () => {
+      router.push("/products");
+
+      await utils.product.list.invalidate();
+      await utils.product.get.invalidate();
+      await utils.cart.get.invalidate();
+      await utils.payment.invalidate();
+    },
+  });
+
   const cartTotal = useMemo(() => {
     return (
       cart?.cartItem.reduce(
@@ -208,6 +221,14 @@ const ProductPage = () => {
       >
         Add to cart
       </button>
+      <Button
+        onClick={async () => {
+          if (!product) return;
+          await deleteProduct({ id });
+        }}
+      >
+        Delete Product
+      </Button>
     </div>
   );
 };

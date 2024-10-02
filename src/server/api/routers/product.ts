@@ -1,7 +1,13 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
+import {
+  createProductDto,
+  deleteProductDto,
   getProductDto,
   listProductsDto,
   productService,
@@ -23,4 +29,16 @@ export const productRouter = createTRPCRouter({
     const resp = await productService.get(input);
     return resp;
   }),
+  create: protectedProcedure
+    .input(createProductDto)
+    .mutation(async ({ input, ctx }) => {
+      const resp = await productService.create(input, ctx.session.user.id);
+      return resp;
+    }),
+  delete: protectedProcedure
+    .input(deleteProductDto)
+    .mutation(async ({ input, ctx }) => {
+      const resp = await productService.delete(input, ctx.session.user.id);
+      return resp;
+    }),
 });
