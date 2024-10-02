@@ -62,6 +62,21 @@ model VerificationToken {
     @@unique([identifier, token])
 }
 
+model ProductAsset {
+    id        String  @id @default(cuid())
+    key       String
+    product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+    productId String
+}
+
+enum ProductCategory {
+    PANTS
+    SHIRTS
+    TSHIRTS
+    JACKETS
+    FOOTWEAR
+}
+
 model Product {
     id    String  @id @default(cuid())
     name  String
@@ -75,6 +90,11 @@ model Product {
 
     CartItem    CartItem[]
     PaymentItem PaymentItem[]
+
+    assets   ProductAsset[]
+    category ProductCategory
+
+    createdAt DateTime @default(now())
 }
 
 model Cart {

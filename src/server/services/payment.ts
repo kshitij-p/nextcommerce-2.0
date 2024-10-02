@@ -130,6 +130,7 @@ export const create = async (
     billing_address_collection: "required",
     success_url: `${env.NEXTAUTH_URL}/payments`,
     cancel_url: `${env.NEXTAUTH_URL}/payments`,
+    currency: "USD",
   });
 
   const payment = await db.payment.create({
