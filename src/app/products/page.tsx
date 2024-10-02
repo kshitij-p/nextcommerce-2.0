@@ -252,7 +252,6 @@ export default function ProductListing() {
           {products.length ? (
             <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => {
-                const image = `https://pub-052bc15d6b604762ae76f9b3a603d345.r2.dev/${product.assets[0]?.key}`;
                 const productLink = `/products/${product.id}`;
                 return (
                   <div key={product.id} className="group">
@@ -262,7 +261,7 @@ export default function ProductListing() {
                     >
                       <img
                         className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:opacity-75"
-                        src={image}
+                        src={product.assets[0]?.publicUrl}
                         alt={product.name}
                       />
                     </Link>

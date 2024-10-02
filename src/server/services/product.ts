@@ -51,6 +51,7 @@ const listProducts = async ({
           in: categories,
         }
       : undefined,
+    deleted: false,
   };
 
   const [products, count] = await Promise.all([
@@ -81,6 +82,7 @@ const getProduct = async ({ id, name }: TypeOf<typeof getProductDto>) => {
     where: {
       id,
       name,
+      deleted: false,
     },
     include: {
       assets: true,
@@ -97,6 +99,10 @@ export const createProductDto = z.object({
   price: z.number(),
   category: z.nativeEnum(ProductCategory),
   assets: z.array(z.object({ key: z.string() })),
+  productDetails: z.string().array(),
+  careDetails: z.string().array(),
+  shippingReturns: z.string(),
+  description: z.string(),
 });
 export const createProduct = async (
   { name, assets, price, ...data }: TypeOf<typeof createProductDto>,
@@ -131,7 +137,13 @@ export const createProduct = async (
       userId,
       assets: {
         createMany: {
-          data: assets,
+          data: assets.map(({ key }) => {
+            return {
+              key,
+              // TODO: update the prefix
+              publicUrl: `https://pub-052bc15d6b604762ae76f9b3a603d345.r2.dev/${key}`,
+            };
+          }),
         },
       },
     },
@@ -162,10 +174,24 @@ export const deleteProduct = async (
         status: PaymentStatus.EXPIRED,
       },
     });
-    return await tx.product.delete({
+    await tx.cartItem.deleteMany({
+      where: {
+        productId: id,
+      },
+    });
+    await tx.productAsset.deleteMany({
+      where: {
+        productId: id,
+      },
+    });
+    return await tx.product.update({
       where: {
         id,
         userId,
+      },
+      data: {
+        deleted: true,
+        deletedAt: new Date(),
       },
     });
   });
