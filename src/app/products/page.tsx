@@ -48,6 +48,7 @@ import {
 } from "~/components/ui/drawer";
 import useDebounced from "~/hooks/use-debounced";
 import { ProductCategory } from "@prisma/client";
+import { Skeleton } from "~/components/ui/skeleton";
 
 const categories = [
   {
@@ -157,6 +158,18 @@ const Filters = ({
     </div>
   );
 };
+
+const productSkeletons = new Array(5).fill(undefined).map((_, idx) => (
+  <div className="space-y-2" key={idx}>
+    <div className="aspect-[3/5] w-full">
+      <Skeleton className="h-full w-full" />
+    </div>
+    <div className="space-y-1">
+      <Skeleton className="h-6 w-full max-w-48" />
+      <Skeleton className="h-5 w-full max-w-24" />
+    </div>
+  </div>
+));
 
 export default function ProductListing() {
   const [filters, setFilters] = useState<ProductFilters>({
@@ -280,9 +293,13 @@ export default function ProductListing() {
                 );
               })}
             </div>
+          ) : isLoadingProducts ? (
+            <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {productSkeletons}
+            </div>
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              {isLoadingProducts ? "Loading..." : "No products available"}
+              No products available
             </div>
           )}
         </div>
