@@ -57,6 +57,7 @@ export const createPaymentDto = z.object({
     z.object({
       productId: z.string(),
       quantity: z.number(),
+      cartItemId: z.string().optional(),
     }),
   ),
 });
@@ -130,6 +131,7 @@ export const create = async (
     success_url: `${env.NEXTAUTH_URL}/payments`,
     cancel_url: `${env.NEXTAUTH_URL}/payments`,
   });
+
   const payment = await db.payment.create({
     data: {
       items: {
@@ -170,11 +172,28 @@ export const webhookUpdateStatus = async ({
         status,
         expiresAt: status !== "PENDING" ? null : undefined,
       },
+      include: {
+        items: true,
+      },
     });
     if (!payment) {
       console.error(`couldnt find payment for checkoutId: ${checkoutId}`);
       return;
     }
+
+    const cartItemIdsToDelete = [];
+    for (const item of payment.items) {
+      if (!item.cartItemId) continue;
+      cartItemIdsToDelete.push(item.cartItemId);
+    }
+
+    await db.cartItem.deleteMany({
+      where: {
+        id: {
+          in: cartItemIdsToDelete,
+        },
+      },
+    });
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError && e.code === "P2025") {
       console.error(`couldnt find payment for checkoutId: ${checkoutId}`);

@@ -78,8 +78,7 @@ model Product {
 }
 
 model Cart {
-    id   String @id @default(cuid())
-    name String
+    id String @id @default(cuid())
 
     user     User       @relation(fields: [userId], references: [id])
     userId   String
@@ -95,7 +94,10 @@ model CartItem {
     productId String
     quantity  Int
 
-    cartId String
+    cartId      String
+    PaymentItem PaymentItem[]
+
+    @@unique([cartId, productId])
 }
 
 model PaymentItem {
@@ -106,6 +108,9 @@ model PaymentItem {
 
     payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
     paymentId String
+
+    cartItem   CartItem? @relation(fields: [cartItemId], references: [id], onDelete: SetNull)
+    cartItemId String?
 }
 
 enum PaymentStatus {
