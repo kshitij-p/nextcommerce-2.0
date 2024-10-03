@@ -27,6 +27,19 @@ const listPayments = async (
       skip,
       take,
       orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                assets: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
     }),
     db.payment.count({ where: filters }),
   ]);
@@ -128,8 +141,8 @@ export const create = async (
       name: "auto",
     },
     billing_address_collection: "required",
-    success_url: `${env.NEXTAUTH_URL}/payments`,
-    cancel_url: `${env.NEXTAUTH_URL}/account/cart`,
+    success_url: `${env.NEXTAUTH_URL}/account/orders`,
+    cancel_url: `${env.NEXTAUTH_URL}/account/orders`,
     currency: "USD",
   });
 
@@ -150,6 +163,7 @@ export const create = async (
       paymentLink: checkout.url!,
       status: PaymentStatus.PENDING,
       expiresAt: new Date(checkout.expires_at * 1000),
+      total: checkout.amount_total ?? 0,
     },
   });
 

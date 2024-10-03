@@ -161,4 +161,6 @@ model Payment {
 
     expiresAt DateTime?
     createdAt DateTime  @default(now())
+
+    total Decimal @default(0)
 }

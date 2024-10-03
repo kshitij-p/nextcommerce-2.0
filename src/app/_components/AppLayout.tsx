@@ -27,7 +27,7 @@ const AppLayout = ({ children }: React.PropsWithChildren) => {
               <Button
                 disabled={status === "loading"}
                 onClick={async () => {
-                  await signIn();
+                  await signIn("google", { redirect: true });
                 }}
               >
                 Sign in
@@ -39,6 +39,12 @@ const AppLayout = ({ children }: React.PropsWithChildren) => {
                   className="hidden text-sm hover:underline md:inline-block"
                 >
                   Account
+                </Link>
+                <Link
+                  href={`/account/orders`}
+                  className="hidden text-sm hover:underline md:inline-block"
+                >
+                  Orders
                 </Link>
                 <Link
                   href={`/account/cart`}

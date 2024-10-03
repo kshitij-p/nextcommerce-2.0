@@ -20,12 +20,13 @@ import {
 import { api } from "~/trpc/react";
 import { MAX_STALE_TIME } from "~/constants";
 import { useParams } from "next/navigation";
-import { type Product } from "@prisma/client";
 import { toast } from "sonner";
 import { Skeleton } from "~/components/ui/skeleton";
+import { signIn, useSession } from "next-auth/react";
 
 export default function ProductDetails() {
   const utils = api.useUtils();
+  const { data: session, status } = useSession();
 
   const { id } = useParams<{ id: string }>();
 
@@ -56,22 +57,12 @@ export default function ProductDetails() {
 
           const updatedData = structuredClone(data);
 
-          let updated = false;
           for (const item of updatedData.item.cartItem) {
             if (item.productId === productId) {
               item.quantity = quantity;
-              updated = true;
+
               break;
             }
-          }
-          if (!updated && product) {
-            updatedData.item.cartItem.push({
-              cartId: updatedData.item.id,
-              id: `temp-id-${new Date().toJSON()}-${Math.random() * 10}`,
-              product: product as unknown as Product,
-              productId,
-              quantity: quantity,
-            });
           }
 
           return updatedData;
@@ -83,17 +74,12 @@ export default function ProductDetails() {
 
           const updatedData = structuredClone(data);
 
-          let updated = false;
           updatedData.item.cartItem = updatedData.item.cartItem.map((x) => {
             if (x.productId === upsertedItem.productId) {
-              updated = true;
               return { ...x, id: upsertedItem.id };
             }
             return x;
           });
-          if (!updated) {
-            updatedData.item.cartItem.push(upsertedItem);
-          }
 
           return updatedData;
         });
@@ -222,6 +208,10 @@ export default function ProductDetails() {
               className="flex-1 py-6"
               onClick={async () => {
                 if (!product) return;
+                if (!session && status !== "loading") {
+                  await signIn("google", { redirect: true });
+                  return;
+                }
                 await createPayment({
                   items: [{ productId: product.id, quantity }],
                 });
@@ -235,6 +225,10 @@ export default function ProductDetails() {
               className="flex-1 py-6"
               onClick={async () => {
                 if (!product) return;
+                if (!session && status !== "loading") {
+                  await signIn("google", { redirect: true });
+                  return;
+                }
                 await upsertCartItem({
                   productId: product.id,
                   quantity,

@@ -140,85 +140,91 @@ export default function CartPage() {
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           {cart ? (
-            cart?.cartItem.map((item) => {
-              const isUpsertingCurrItem =
-                isUpsertingCartItem &&
-                upsertCartItemVars.productId === item.productId;
-              const isDeletingCurrItem =
-                isDeletingCartItem && deleteCartItemVars?.id === item.id;
+            cart.cartItem.length ? (
+              cart.cartItem.map((item) => {
+                const isUpsertingCurrItem =
+                  isUpsertingCartItem &&
+                  upsertCartItemVars.productId === item.productId;
+                const isDeletingCurrItem =
+                  isDeletingCartItem && deleteCartItemVars?.id === item.id;
 
-              return (
-                <Card
-                  key={item.id}
-                  className={cn(
-                    "mb-6",
-                    (isUpsertingCurrItem ||
-                      isDeletingCurrItem ||
-                      isCheckingOut) &&
-                      "opacity-75",
-                  )}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4">
-                      <div className="relative h-24 w-24 overflow-hidden rounded-md">
-                        <img
-                          className="h-full w-full object-cover"
-                          src={item.product.assets[0]?.publicUrl}
-                          alt={`An image of ${item.product.name}`}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold">
-                          {item.product.name}
-                        </h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                          ${+item.product.price / 100}
-                        </p>
-                      </div>
+                return (
+                  <Card
+                    key={item.id}
+                    className={cn(
+                      "mb-6",
+                      (isUpsertingCurrItem ||
+                        isDeletingCurrItem ||
+                        isCheckingOut) &&
+                        "opacity-75",
+                    )}
+                  >
+                    <CardContent className="p-6">
                       <div className="flex items-center space-x-4">
-                        <Select
-                          disabled={
-                            isDeletingCartItem ||
-                            isUpsertingCartItem ||
-                            isCheckingOut
-                          }
-                          value={item.quantity.toString()}
-                          onValueChange={async (value) => {
-                            await upsertCartItem({
-                              productId: item.productId,
-                              quantity: +value,
-                            });
-                          }}
-                        >
-                          <SelectTrigger className="w-20">
-                            <SelectValue placeholder="Quantity" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[1, 2, 3, 4, 5].map((num) => (
-                              <SelectItem key={num} value={num.toString()}>
-                                {num}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteCartItem({ id: item.id })}
-                          disabled={
-                            isDeletingCartItem ||
-                            isUpsertingCartItem ||
-                            isCheckingOut
-                          }
-                        >
-                          <Trash className="h-5 w-5" />
-                        </Button>
+                        <div className="relative h-24 w-24 overflow-hidden rounded-md">
+                          <img
+                            className="h-full w-full object-cover"
+                            src={item.product.assets[0]?.publicUrl}
+                            alt={`An image of ${item.product.name}`}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold">
+                            {item.product.name}
+                          </h3>
+                          <p className="mt-1 text-sm text-gray-500">
+                            ${+item.product.price / 100}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <Select
+                            disabled={
+                              isDeletingCartItem ||
+                              isUpsertingCartItem ||
+                              isCheckingOut
+                            }
+                            value={item.quantity.toString()}
+                            onValueChange={async (value) => {
+                              await upsertCartItem({
+                                productId: item.productId,
+                                quantity: +value,
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="w-20">
+                              <SelectValue placeholder="Quantity" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5].map((num) => (
+                                <SelectItem key={num} value={num.toString()}>
+                                  {num}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteCartItem({ id: item.id })}
+                            disabled={
+                              isDeletingCartItem ||
+                              isUpsertingCartItem ||
+                              isCheckingOut
+                            }
+                          >
+                            <Trash className="h-5 w-5" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-2xl font-medium text-neutral-200">
+                Your cart is empty.
+              </div>
+            )
           ) : (
             <div className="flex flex-col gap-4">
               <Skeleton className="h-36 w-full" />
