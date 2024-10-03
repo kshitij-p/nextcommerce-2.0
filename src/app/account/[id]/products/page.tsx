@@ -28,6 +28,9 @@ import {
 import { useState } from "react";
 import { type SerializedProduct } from "~/server/services/product";
 import { toast } from "sonner";
+import { usePagination } from "~/hooks/use-pagination";
+import { useTotalPages } from "~/hooks/use-total-pages";
+import { PaginationControls } from "~/components/pagination-controls";
 
 export default function AccountPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,15 +38,19 @@ export default function AccountPage() {
 
   const { data: session } = useSession();
 
+  const { skip, take, pageSize, setPageSize, page, setPage } = usePagination();
   const { data } = api.product.list.useQuery(
     {
       userId: session?.user.id,
+      skip,
+      take,
     },
     {
       staleTime: MAX_STALE_TIME,
     },
   );
   const products = data?.items;
+  const totalPages = useTotalPages(data?.total ?? 0, pageSize);
 
   const [productToDelete, setProductToDelete] = useState<
     SerializedProduct | undefined
@@ -154,6 +161,13 @@ export default function AccountPage() {
           </>
         )}
       </div>
+      <PaginationControls
+        page={page}
+        pageSize={pageSize}
+        totalPages={totalPages}
+        setPage={setPage}
+        setPageSize={setPageSize}
+      />
     </div>
   );
 }

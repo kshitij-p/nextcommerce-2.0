@@ -18,6 +18,9 @@ import {
 import useDebounced from "~/hooks/use-debounced";
 import { ProductCategory } from "@prisma/client";
 import { Skeleton } from "~/components/ui/skeleton";
+import { PaginationControls } from "~/components/pagination-controls";
+import { usePagination } from "~/hooks/use-pagination";
+import { useTotalPages } from "~/hooks/use-total-pages";
 
 const categories = [
   {
@@ -148,8 +151,11 @@ export default function ProductListing() {
   });
   const debouncedFilters = useDebounced(filters, 250);
 
+  const { skip, take, pageSize, setPageSize, page, setPage } = usePagination();
   const { data, isLoading: isLoadingProducts } = api.product.list.useQuery(
     {
+      skip,
+      take,
       name: debouncedFilters.name,
       priceGte: debouncedFilters.price[0]
         ? debouncedFilters.price[0]
@@ -165,6 +171,7 @@ export default function ProductListing() {
     },
   );
   const products = data?.items;
+  const totalPages = useTotalPages(data?.total ?? 0, pageSize);
 
   return (
     <div>
@@ -248,10 +255,17 @@ export default function ProductListing() {
               {productSkeletons}
             </div>
           ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              No products available
+            <div className="flex h-full min-h-[55vh] w-full items-center justify-center">
+              No products match the given filters.
             </div>
           )}
+          <PaginationControls
+            page={page}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            setPage={setPage}
+            setPageSize={setPageSize}
+          />
         </div>
       </div>
     </div>

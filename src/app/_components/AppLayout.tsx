@@ -1,16 +1,16 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 import React from "react";
 import { Button } from "~/components/ui/button";
-import { api } from "~/trpc/react";
+import { useLogout } from "~/hooks/use-logout";
 
 const AppLayout = ({ children }: React.PropsWithChildren) => {
   const { status, data: session } = useSession();
 
-  const utils = api.useUtils();
+  const logout = useLogout();
 
   return (
     <div className="min-h-screen">
@@ -35,7 +35,7 @@ const AppLayout = ({ children }: React.PropsWithChildren) => {
             ) : (
               <>
                 <Link
-                  href={`/account/${session.user.id}/products`}
+                  href={`/account`}
                   className="hidden text-sm hover:underline md:inline-block"
                 >
                   Account
@@ -55,8 +55,7 @@ const AppLayout = ({ children }: React.PropsWithChildren) => {
                 <button
                   className="hidden text-sm hover:underline md:inline-block"
                   onClick={async () => {
-                    await signOut();
-                    await utils.invalidate();
+                    await logout();
                   }}
                 >
                   Logout

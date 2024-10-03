@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -9,13 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+
 import { Separator } from "~/components/ui/separator";
 import {
   Accordion,
@@ -42,6 +35,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { Skeleton } from "~/components/ui/skeleton";
+import { PaginationControls } from "~/components/pagination-controls";
 
 export default function PaymentsPage() {
   const utils = api.useUtils();
@@ -59,6 +53,8 @@ export default function PaymentsPage() {
       placeholderData: keepPreviousData,
     },
   );
+  const totalPages = useTotalPages(data?.total ?? 0, pageSize);
+
   const payments = useMemo(() => {
     if (!data) return [];
     return data.items.map((item) => {
@@ -71,7 +67,6 @@ export default function PaymentsPage() {
       };
     });
   }, [data]);
-  const totalPages = useTotalPages(data?.total ?? 0, pageSize);
 
   const { mutateAsync: cancelPayment, isPending: isCancellingPayment } =
     api.payment.cancel.useMutation({
@@ -242,45 +237,13 @@ export default function PaymentsPage() {
           </>
         )}
       </div>
-      <div className="mt-8 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-500">Items per page:</span>
-          <Select
-            value={pageSize.toString()}
-            onValueChange={(value) => setPageSize(+value)}
-          >
-            <SelectTrigger className="w-20">
-              <SelectValue placeholder={pageSize.toString()} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm">
-            Page {page} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setPage(page + 1)}
-            disabled={page === totalPages}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <PaginationControls
+        page={page}
+        pageSize={pageSize}
+        totalPages={totalPages}
+        setPage={setPage}
+        setPageSize={setPageSize}
+      />
     </div>
   );
 }
