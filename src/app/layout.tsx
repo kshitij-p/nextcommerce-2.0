@@ -7,7 +7,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { SessionProvider } from "~/components/session-provider";
-import AppLayout from "./_components/AppLayout";
+import AppLayout from "./_components/app-layout";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -19,7 +19,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
+    <html
+      lang="en"
+      className={`${GeistSans.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         <TRPCReactProvider>
           <SessionProvider>
