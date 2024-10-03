@@ -230,7 +230,7 @@ export default function ProductListing() {
                       className="inline-block aspect-[3/5] w-full overflow-hidden rounded-lg bg-gray-900"
                     >
                       <img
-                        className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:opacity-75"
+                        className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:brightness-75"
                         src={product.assets[0]?.publicUrl}
                         alt={product.name}
                       />

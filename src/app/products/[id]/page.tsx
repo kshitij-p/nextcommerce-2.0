@@ -23,6 +23,7 @@ import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Skeleton } from "~/components/ui/skeleton";
 import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
 
 export default function ProductDetails() {
   const utils = api.useUtils();
@@ -38,6 +39,13 @@ export default function ProductDetails() {
     {
       staleTime: MAX_STALE_TIME,
       select: ({ item }) => item,
+      retry: false,
+    },
+  );
+  const { data } = api.product.list.useQuery(
+    { categories: [], take: 4 },
+    {
+      staleTime: MAX_STALE_TIME,
       retry: false,
     },
   );
@@ -128,7 +136,7 @@ export default function ProductDetails() {
                     <img
                       src={asset.publicUrl}
                       alt="Dress Detail 1"
-                      className="h-full w-full rounded-lg object-cover transition group-hover:scale-105 group-hover:opacity-75"
+                      className="h-full w-full rounded-lg object-cover transition group-hover:scale-105 group-hover:brightness-75"
                     />
                   </button>
                 );
@@ -290,26 +298,32 @@ export default function ProductDetails() {
           </Accordion>
         </div>
       </div>
-      <section className="mt-16">
-        <h2 className="mb-6 text-2xl font-semibold">You May Also Like</h2>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-          {[1, 2, 3, 4].map((item) => (
-            <Card key={item}>
-              <CardContent className="p-4">
-                <img
-                  src={
-                    "https://pub-052bc15d6b604762ae76f9b3a603d345.r2.dev/2AE14CDD-1265-470C-9B15F49024186C10_source.jpg"
-                  }
-                  alt={`Related Product ${item}`}
-                  className="mb-4 h-auto w-full rounded-lg object-cover"
-                />
-                <h3 className="font-medium">Luxurious Item {item}</h3>
-                <p className="mt-1 text-sm text-gray-600">$999.00</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+      {data?.items.length ? (
+        <section className="mt-16">
+          <h2 className="mb-6 text-2xl font-semibold">You May Also Like</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+            {data.items.map((product) => (
+              <Card key={product.id}>
+                <CardContent className="p-4">
+                  <Link className="group" href={`/products/${product.id}`}>
+                    <div className="mb-4 h-auto w-full overflow-hidden rounded-lg">
+                      <img
+                        src={product.assets[0]?.publicUrl}
+                        alt={`An image of ${product.name}`}
+                        className="h-auto w-full object-cover transition group-hover:scale-105 group-hover:brightness-75"
+                      />
+                    </div>
+                    <h3 className="font-medium group-hover:font-semibold group-focus-visible:font-semibold">
+                      {product.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-600">$999.00</p>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
