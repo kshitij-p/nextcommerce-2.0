@@ -7,20 +7,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { useMemo } from "react";
 
 export const PaginationControls = ({
   page,
   pageSize,
   setPage,
   setPageSize,
-  totalPages,
+  total,
 }: {
   page: number;
   pageSize: number;
-  totalPages: number;
+  total: number | undefined;
   setPage: (val: number) => void;
   setPageSize: (val: number) => void;
 }) => {
+  const totalPages = useMemo(
+    () => (total ? Math.ceil(total / pageSize) : page),
+    [total, pageSize, page],
+  );
+
   return (
     <div className="mt-8 flex items-center justify-between">
       <div className="flex items-center space-x-2">

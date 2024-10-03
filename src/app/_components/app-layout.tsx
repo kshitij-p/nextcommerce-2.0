@@ -54,7 +54,10 @@ const AppLayout = ({ children }: React.PropsWithChildren) => {
             </DrawerContent>
           </Drawer>
 
-          <Link href="/">
+          <Link
+            className="transition hover:scale-105 focus-visible:scale-105"
+            href="/"
+          >
             <h1 className="text-2xl font-semibold">ACME Inc.</h1>
           </Link>
           <button

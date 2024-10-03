@@ -20,7 +20,6 @@ import { ProductCategory } from "@prisma/client";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PaginationControls } from "~/components/pagination-controls";
 import { usePagination } from "~/hooks/use-pagination";
-import { useTotalPages } from "~/hooks/use-total-pages";
 
 const categories = [
   {
@@ -171,7 +170,6 @@ export default function ProductListing() {
     },
   );
   const products = data?.items;
-  const totalPages = useTotalPages(data?.total ?? 0, pageSize);
 
   return (
     <div>
@@ -230,15 +228,15 @@ export default function ProductListing() {
                       className="inline-block aspect-[3/5] w-full overflow-hidden rounded-lg bg-gray-900"
                     >
                       <img
-                        className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:brightness-75"
+                        className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
                         src={product.assets[0]?.publicUrl}
                         alt={product.name}
                       />
                     </Link>
-                    <div className="leading-none">
+                    <div className="space-y-1">
                       <Link
                         href={productLink}
-                        className="text-lg font-medium hover:underline"
+                        className="text-lg font-medium leading-none hover:underline"
                       >
                         {product.name}
                       </Link>
@@ -262,7 +260,7 @@ export default function ProductListing() {
           <PaginationControls
             page={page}
             pageSize={pageSize}
-            totalPages={totalPages}
+            total={data?.total}
             setPage={setPage}
             setPageSize={setPageSize}
           />

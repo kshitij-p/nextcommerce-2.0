@@ -22,7 +22,6 @@ import { type Payment, PaymentStatus } from "@prisma/client";
 import { cn } from "~/lib/utils";
 import { useSession } from "next-auth/react";
 import { usePagination } from "~/hooks/use-pagination";
-import { useTotalPages } from "~/hooks/use-total-pages";
 import { keepPreviousData } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
@@ -42,7 +41,11 @@ export default function PaymentsPage() {
   const { data: session } = useSession();
 
   const { skip, take, pageSize, setPageSize, page, setPage } = usePagination();
-  const { data } = api.payment.list.useQuery(
+  const {
+    data,
+    isLoading: isLoadingPayments,
+    isError: isGettingPaymentsError,
+  } = api.payment.list.useQuery(
     {
       skip,
       take,
@@ -53,10 +56,9 @@ export default function PaymentsPage() {
       placeholderData: keepPreviousData,
     },
   );
-  const totalPages = useTotalPages(data?.total ?? 0, pageSize);
 
   const payments = useMemo(() => {
-    if (!data) return [];
+    if (!data) return;
     return data.items.map((item) => {
       const createdAt = new Date(item.createdAt);
       const formattedCreatedAt = `${createdAt.toLocaleDateString()} ${createdAt.toLocaleTimeString()}`;
@@ -230,17 +232,23 @@ export default function PaymentsPage() {
               </Card>
             );
           })
-        ) : (
+        ) : isLoadingPayments ? (
           <>
             <Skeleton className="h-80 w-full" />
             <Skeleton className="h-80 w-full" />
           </>
+        ) : (
+          <div className="flex min-h-[60vh] w-full items-center justify-center">
+            {isGettingPaymentsError
+              ? "Failed to get orders"
+              : "You don't have any orders."}
+          </div>
         )}
       </div>
       <PaginationControls
         page={page}
         pageSize={pageSize}
-        totalPages={totalPages}
+        total={data?.total}
         setPage={setPage}
         setPageSize={setPageSize}
       />

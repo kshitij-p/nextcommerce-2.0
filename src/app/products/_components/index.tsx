@@ -129,14 +129,14 @@ const PreviewAsset = ({
 }) => {
   return (
     <div className="group relative aspect-square h-auto w-80 min-w-60">
-      <div className="absolute inset-0 left-1/2 top-1/2 z-10 h-max w-max -translate-x-1/2 -translate-y-1/2 opacity-0 transition group-hover:opacity-100">
+      <div className="absolute inset-0 left-1/2 top-1/2 z-10 h-max w-max -translate-x-1/2 -translate-y-1/2 opacity-0 transition group-hover:opacity-100 group-focus-visible:opacity-100">
         <Button variant={"outline"} type="button" onClick={onDelete}>
           <Trash />
           <p className="sr-only">Delete asset</p>
         </Button>
       </div>
       <img
-        className="h-full w-full object-cover transition group-hover:brightness-50"
+        className="h-full w-full object-cover transition group-hover:brightness-50 group-focus-visible:brightness-50"
         src={img}
         alt="AA"
       />
@@ -421,7 +421,11 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
                       multiple
                       accept="image/*"
                       onChange={(e) => {
-                        const files = e.currentTarget.files;
+                        const files = e.currentTarget.files
+                          ? Array.from(e.currentTarget.files)
+                          : null;
+                        e.currentTarget.value = "";
+
                         if (!files) {
                           field.onChange([]);
                           return;
@@ -429,9 +433,11 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
 
                         if (
                           product &&
-                          files.length + product.assets.length > 5
+                          files.length +
+                            form.getValues("existingAssets").length >
+                            5
                         ) {
-                          toast("Can't have more than 5 assets in total");
+                          toast("Can't attach more than 5 images");
                           return;
                         }
                         for (const file of files) {

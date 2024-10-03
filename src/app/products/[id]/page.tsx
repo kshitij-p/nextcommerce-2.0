@@ -136,7 +136,7 @@ export default function ProductDetails() {
                     <img
                       src={asset.publicUrl}
                       alt="Dress Detail 1"
-                      className="h-full w-full rounded-lg object-cover transition group-hover:scale-105 group-hover:brightness-75"
+                      className="h-full w-full rounded-lg object-cover transition group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
                     />
                   </button>
                 );
@@ -198,7 +198,7 @@ export default function ProductDetails() {
                 value={quantity.toString()}
                 onValueChange={(val) => setQuantity(+val)}
               >
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-16">
                   <SelectValue placeholder="Quantity" />
                 </SelectTrigger>
                 <SelectContent>
@@ -303,20 +303,20 @@ export default function ProductDetails() {
           <h2 className="mb-6 text-2xl font-semibold">You May Also Like</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
             {data.items.map((product) => (
-              <Card key={product.id}>
+              <Card className="border-border/50 shadow-sm" key={product.id}>
                 <CardContent className="p-4">
                   <Link className="group" href={`/products/${product.id}`}>
-                    <div className="mb-4 h-auto w-full overflow-hidden rounded-lg">
+                    <div className="mb-4 aspect-[3/4] h-auto w-full overflow-hidden rounded-lg">
                       <img
                         src={product.assets[0]?.publicUrl}
                         alt={`An image of ${product.name}`}
-                        className="h-auto w-full object-cover transition group-hover:scale-105 group-hover:brightness-75"
+                        className="h-full w-full object-cover transition group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
                       />
                     </div>
-                    <h3 className="font-medium group-hover:font-semibold group-focus-visible:font-semibold">
-                      {product.name}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-600">$999.00</p>
+                    <h3 className="font-medium">{product.name}</h3>
+                    <p className="mt-1 text-sm text-neutral-500">
+                      ${+product.price / 100}
+                    </p>
                   </Link>
                 </CardContent>
               </Card>

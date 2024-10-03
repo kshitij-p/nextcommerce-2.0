@@ -2,13 +2,7 @@
 "use client";
 
 import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardFooter } from "~/components/ui/card";
 import { Pencil, Plus, Trash } from "lucide-react";
 import { api } from "~/trpc/react";
 import { MAX_STALE_TIME } from "~/constants";
@@ -29,7 +23,6 @@ import { useState } from "react";
 import { type SerializedProduct } from "~/server/services/product";
 import { toast } from "sonner";
 import { usePagination } from "~/hooks/use-pagination";
-import { useTotalPages } from "~/hooks/use-total-pages";
 import { PaginationControls } from "~/components/pagination-controls";
 
 export default function AccountPage() {
@@ -50,7 +43,6 @@ export default function AccountPage() {
     },
   );
   const products = data?.items;
-  const totalPages = useTotalPages(data?.total ?? 0, pageSize);
 
   const [productToDelete, setProductToDelete] = useState<
     SerializedProduct | undefined
@@ -116,22 +108,30 @@ export default function AccountPage() {
         {products ? (
           products.map((product) => {
             const primeAsset = product.assets[0];
+            const productLink = `/products/${product.id}`;
             return (
-              <Card key={product.id}>
-                <CardHeader>
-                  <CardTitle>{product.name}</CardTitle>
-                </CardHeader>
+              <Card className="group border-border/50" key={product.id}>
                 <CardContent>
-                  <div className="relative mb-4 aspect-square">
+                  <Link
+                    href={productLink}
+                    className="relative mb-4 block aspect-square h-auto w-full overflow-hidden rounded-md"
+                  >
                     <img
                       src={primeAsset?.publicUrl}
                       alt={`An image of ${product.name}`}
-                      className="h-full w-full rounded-md object-cover"
+                      className="h-full w-full object-cover transition group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
                     />
+                  </Link>
+                  <div>
+                    <Link
+                      className="inline text-lg font-medium hover:underline"
+                      href={productLink}
+                      tabIndex={-1}
+                    >
+                      {product.name}
+                    </Link>
+                    <p>${+product.price / 100}</p>
                   </div>
-                  <p className="text-lg font-semibold">
-                    ${+product.price / 100}
-                  </p>
                 </CardContent>
                 {session?.user.id === product.userId ? (
                   <CardFooter className="flex justify-between">
@@ -164,7 +164,7 @@ export default function AccountPage() {
       <PaginationControls
         page={page}
         pageSize={pageSize}
-        totalPages={totalPages}
+        total={data?.total}
         setPage={setPage}
         setPageSize={setPageSize}
       />
