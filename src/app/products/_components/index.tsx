@@ -3,6 +3,7 @@
 
 import { ProductCategory } from "@prisma/client";
 import { Plus, Trash } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
 import { toast } from "sonner";
@@ -145,6 +146,7 @@ const PreviewAsset = ({
 
 const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const utils = api.useUtils();
   const { mutateAsync: createProduct, isPending: isCreatingProduct } =
@@ -152,7 +154,10 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
       onSuccess: async () => {
         toast.success("Created a product");
 
-        router.push("/products");
+        const redirectLink = session
+          ? `/account/${session.user.id}/products`
+          : `/`;
+        router.push(redirectLink);
 
         await utils.product.list.invalidate();
         await utils.product.get.invalidate();
@@ -163,7 +168,10 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
       onSuccess: async () => {
         toast.success("Updated the product");
 
-        router.push("/products");
+        const redirectLink = session
+          ? `/account/${session.user.id}/products`
+          : `/`;
+        router.push(redirectLink);
 
         await utils.product.list.invalidate();
         await utils.product.get.invalidate();

@@ -22,6 +22,7 @@ export type SerializedProduct = Omit<Product, "price"> & {
 
 export const listProductsDto = z.object({
   name: z.string().optional(),
+  userId: z.string().optional(),
   priceLte: z.number().optional(),
   priceGte: z.number().optional(),
   categories: z.array(z.nativeEnum(ProductCategory)).optional(),
@@ -36,8 +37,10 @@ const listProducts = async ({
   priceLte,
   skip,
   take,
+  ...input
 }: TypeOf<typeof listProductsDto>) => {
   const filters: Prisma.ProductWhereInput = {
+    ...input,
     name: name
       ? {
           contains: name,
@@ -81,10 +84,16 @@ const listProducts = async ({
 export const getProductDto = z.object({
   id: z.string().optional(),
   name: z.string().optional(),
+  userId: z.string().optional(),
 });
-const getProduct = async ({ id, name }: TypeOf<typeof getProductDto>) => {
+const getProduct = async ({
+  id,
+  name,
+  ...input
+}: TypeOf<typeof getProductDto>) => {
   const product = await db.product.findFirst({
     where: {
+      ...input,
       id,
       name,
       deleted: false,

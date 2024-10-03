@@ -164,7 +164,7 @@ export default function ProductListing() {
       staleTime: MAX_STALE_TIME,
     },
   );
-  const products = data?.items ?? [];
+  const products = data?.items;
 
   return (
     <div>
@@ -212,7 +212,7 @@ export default function ProductListing() {
               </Drawer>
             </div>
           </div>
-          {products.length ? (
+          {products?.length ? (
             <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => {
                 const productLink = `/products/${product.id}`;
