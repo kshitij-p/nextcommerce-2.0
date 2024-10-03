@@ -40,9 +40,12 @@ const AppLayout = ({ children }: React.PropsWithChildren) => {
                 >
                   Account
                 </Link>
-                <button className="hidden text-sm hover:underline md:inline-block">
+                <Link
+                  href={`/account/cart`}
+                  className="hidden text-sm hover:underline md:inline-block"
+                >
                   Cart
-                </button>
+                </Link>
                 <button
                   className="hidden text-sm hover:underline md:inline-block"
                   onClick={async () => {
