@@ -37,6 +37,8 @@ export const env = createEnv({
 
     CF_ACCOUNT_ID: z.string(),
     R2_PUBLIC_URL_PREFIX: z.string(),
+
+    HOST_URL: z.string(),
   },
 
   /**
@@ -73,6 +75,8 @@ export const env = createEnv({
 
     CF_ACCOUNT_ID: process.env.CF_ACCOUNT_ID,
     R2_PUBLIC_URL_PREFIX: process.env.R2_PUBLIC_URL_PREFIX,
+
+    HOST_URL: process.env.HOST_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

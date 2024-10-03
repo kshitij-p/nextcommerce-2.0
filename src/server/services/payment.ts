@@ -141,8 +141,8 @@ export const create = async (
       name: "auto",
     },
     billing_address_collection: "required",
-    success_url: `${env.NEXTAUTH_URL}/account/orders`,
-    cancel_url: `${env.NEXTAUTH_URL}/account/orders`,
+    success_url: `${env.HOST_URL}/account/orders`,
+    cancel_url: `${env.HOST_URL}/account/orders`,
     currency: "USD",
   });
 
