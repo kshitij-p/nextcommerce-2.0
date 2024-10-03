@@ -7,6 +7,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { SessionProvider } from "~/components/session-provider";
+import AppLayout from "./_components/AppLayout";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -23,7 +24,7 @@ export default function RootLayout({
         <TRPCReactProvider>
           <SessionProvider>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-              {children}
+              <AppLayout>{children}</AppLayout>
               <Toaster />
             </ThemeProvider>
           </SessionProvider>

@@ -1,57 +1,259 @@
+/* eslint-disable @next/next/no-img-element */
+"use client";
+import React, { useMemo, useState } from "react";
+import { Sliders } from "lucide-react";
+import { Input } from "~/components/ui/input";
+import { Slider, SliderThumb } from "~/components/ui/slider";
+import { Checkbox } from "~/components/ui/checkbox";
+import { api } from "~/trpc/react";
+import { MAX_STALE_TIME } from "~/constants";
 import Link from "next/link";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/ui/drawer";
+import useDebounced from "~/hooks/use-debounced";
+import { ProductCategory } from "@prisma/client";
+import { Skeleton } from "~/components/ui/skeleton";
 
-import { getServerAuthSession } from "~/server/auth";
-import { HydrateClient } from "~/trpc/server";
+const categories = [
+  {
+    name: "Footwear",
+    value: ProductCategory.FOOTWEAR,
+  },
+  {
+    name: "Pants",
+    value: ProductCategory.PANTS,
+  },
+  {
+    name: "Shirts",
+    value: ProductCategory.SHIRTS,
+  },
+  {
+    name: "Tshirts",
+    value: ProductCategory.TSHIRTS,
+  },
+  {
+    name: "Jackets",
+    value: ProductCategory.JACKETS,
+  },
+];
 
-export default async function Home() {
-  const session = await getServerAuthSession();
+type ProductFilters = {
+  price: [number, number];
+  name: string;
+  categories: string[];
+};
+
+const MAX_PRICE = 510_000;
+
+const Filters = ({
+  filters,
+  setFilters,
+}: {
+  filters: ProductFilters;
+  setFilters: React.Dispatch<React.SetStateAction<ProductFilters>>;
+}) => {
+  const { price, categories: selectedCategories } = filters;
+  const formattedPriceRange = useMemo(() => {
+    let [startPrice, endPrice] = price;
+
+    startPrice = Math.round(startPrice / 100);
+    endPrice = Math.round(endPrice / 100);
+
+    return `$${startPrice} - $${endPrice >= MAX_PRICE ? "5000+" : endPrice}`;
+  }, [price]);
 
   return (
-    <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
+    <div className="space-y-4">
+      <div>
+        <h3 className="mb-2 text-start text-lg">Category</h3>
+        <div className="space-y-2">
+          {categories.map((c) => {
+            const id = `filter-category-check-${c.value}`;
+            return (
+              <div className="flex items-center" key={c.name}>
+                <Checkbox
+                  id={id}
+                  checked={selectedCategories.includes(c.value)}
+                  onCheckedChange={(val) =>
+                    setFilters((filters) => ({
+                      ...filters,
+                      categories: val
+                        ? [...selectedCategories, c.value]
+                        : selectedCategories.filter((curr) => curr !== c.value),
+                    }))
+                  }
+                />
+                <label className="ml-2" htmlFor={id}>
+                  {c.name}
+                </label>
               </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
+            );
+          })}
+        </div>
+      </div>
+      <div>
+        <div className="mb-2 flex flex-col">
+          <span className="flex items-center gap-2">
+            <h3>
+              <span className="text-lg">Price</span>
+            </h3>
+            <span>{formattedPriceRange}</span>
+          </span>
+        </div>
+        <Slider
+          value={price}
+          onValueChange={(val) =>
+            setFilters((curr) => ({
+              ...curr,
+              price: val as [number, number],
+            }))
+          }
+          step={5000}
+          min={0}
+          max={MAX_PRICE}
+        >
+          <SliderThumb />
+        </Slider>
+        <div className="mt-2 flex justify-between text-sm">
+          <span>$0</span>
+          <span>$5000+</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const productSkeletons = new Array(5).fill(undefined).map((_, idx) => (
+  <div className="space-y-2" key={idx}>
+    <div className="aspect-[3/5] w-full">
+      <Skeleton className="h-full w-full" />
+    </div>
+    <div className="space-y-1">
+      <Skeleton className="h-6 w-full max-w-48" />
+      <Skeleton className="h-5 w-full max-w-24" />
+    </div>
+  </div>
+));
+
+export default function ProductListing() {
+  const [filters, setFilters] = useState<ProductFilters>({
+    price: [0, MAX_PRICE] as [number, number],
+    name: "",
+    categories: [],
+  });
+  const debouncedFilters = useDebounced(filters, 250);
+
+  const { data, isLoading: isLoadingProducts } = api.product.list.useQuery(
+    {
+      name: debouncedFilters.name,
+      priceGte: debouncedFilters.price[0]
+        ? debouncedFilters.price[0]
+        : undefined,
+      priceLte:
+        debouncedFilters.price[1] >= MAX_PRICE
+          ? undefined
+          : debouncedFilters.price[1],
+      categories: debouncedFilters.categories as ProductCategory[],
+    },
+    {
+      staleTime: MAX_STALE_TIME,
+    },
+  );
+  const products = data?.items ?? [];
+
+  return (
+    <div>
+      <div className="mx-auto flex w-full px-4 pb-8">
+        <aside className="sticky inset-0 mr-8 hidden w-64 pt-8 md:block">
+          <div className="sticky top-20">
+            <h2 className="mb-4 flex items-center text-xl font-semibold">
+              Filters
+            </h2>
+            <Filters filters={filters} setFilters={setFilters} />
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
-              </p>
-              <Link
-                href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-              >
-                {session ? "Sign out" : "Sign in"}
-              </Link>
+        </aside>
+
+        <div className="flex flex-1 flex-col gap-8 pt-8">
+          <div className="w-full">
+            <label className="mb-1 inline-block" htmlFor="products-name-search">
+              Search
+            </label>
+            <div className="flex w-full items-center gap-4">
+              <Input
+                className="w-full max-w-[700px]"
+                id="products-name-search"
+                type="search"
+                value={filters.name}
+                onChange={(e) => {
+                  const value = e.currentTarget.value;
+                  setFilters((curr) => ({
+                    ...curr,
+                    name: value,
+                  }));
+                }}
+              />
+              <Drawer>
+                <DrawerTrigger className="flex items-center justify-center md:hidden">
+                  <Sliders className="h-5 w-5" />
+                </DrawerTrigger>
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle className="text-center">Filters</DrawerTitle>
+                    <div>
+                      <Filters filters={filters} setFilters={setFilters} />
+                    </div>
+                  </DrawerHeader>
+                </DrawerContent>
+              </Drawer>
             </div>
           </div>
+          {products.length ? (
+            <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {products.map((product) => {
+                const productLink = `/products/${product.id}`;
+                return (
+                  <div key={product.id} className="group">
+                    <Link
+                      href={productLink}
+                      className="inline-block aspect-[3/5] w-full overflow-hidden rounded-lg bg-gray-900"
+                    >
+                      <img
+                        className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:opacity-75"
+                        src={product.assets[0]?.publicUrl}
+                        alt={product.name}
+                      />
+                    </Link>
+                    <div className="leading-none">
+                      <Link
+                        href={productLink}
+                        className="text-lg font-medium hover:underline"
+                      >
+                        {product.name}
+                      </Link>
+                      <p className="font-semibold leading-none">
+                        ${+product.price / 100}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : isLoadingProducts ? (
+            <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {productSkeletons}
+            </div>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              No products available
+            </div>
+          )}
         </div>
-      </main>
-    </HydrateClient>
+      </div>
+    </div>
   );
 }

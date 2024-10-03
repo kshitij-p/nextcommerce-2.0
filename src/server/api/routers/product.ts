@@ -8,6 +8,7 @@ import {
 import {
   createProductDto,
   deleteProductDto,
+  editProductDto,
   getProductDto,
   listProductsDto,
   productService,
@@ -35,10 +36,22 @@ export const productRouter = createTRPCRouter({
       const resp = await productService.create(input, ctx.session.user.id);
       return resp;
     }),
+  edit: protectedProcedure
+    .input(editProductDto)
+    .mutation(async ({ input, ctx }) => {
+      const resp = await productService.edit(input, ctx.session.user.id);
+      return resp;
+    }),
   delete: protectedProcedure
     .input(deleteProductDto)
     .mutation(async ({ input, ctx }) => {
       const resp = await productService.delete(input, ctx.session.user.id);
       return resp;
     }),
+  getUploadPresignedUrl: protectedProcedure.mutation(async ({ ctx }) => {
+    const resp = await productService.getUploadPresignedUrl(
+      ctx.session.user.id,
+    );
+    return resp;
+  }),
 });

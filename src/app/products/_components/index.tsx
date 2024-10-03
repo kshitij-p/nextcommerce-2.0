@@ -4,7 +4,7 @@
 import { ProductCategory } from "@prisma/client";
 import { Plus, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import { MAX_PRODUCT_ASSET_SIZE, ONE_MB } from "~/constants";
 import { useForm } from "~/hooks/use-form";
 import { type SerializedProduct } from "~/server/services/product";
 import { api } from "~/trpc/react";
@@ -37,6 +38,12 @@ const createProductSchema = z.object({
   productDetails: z.string().array(),
   careDetails: z.string().array(),
   shippingReturns: z.string(),
+  existingAssets: z
+    .array(z.object({ key: z.string(), publicUrl: z.string() }))
+    .max(5),
+  filesToUpload: z
+    .array(z.object({ file: z.instanceof(File), previewUrl: z.string() }))
+    .max(5),
 });
 
 const categories = [
@@ -112,9 +119,28 @@ const MultiLineInput = ({
   );
 };
 
-type UploadFile = {
-  file: File;
-  previewUrl: string;
+const PreviewAsset = ({
+  img,
+  onDelete,
+}: {
+  img: string | undefined;
+  onDelete: () => void;
+}) => {
+  return (
+    <div className="group relative aspect-square h-auto w-80 min-w-60">
+      <div className="absolute inset-0 left-1/2 top-1/2 z-10 h-max w-max -translate-x-1/2 -translate-y-1/2 opacity-0 transition group-hover:opacity-100">
+        <Button variant={"outline"} type="button" onClick={onDelete}>
+          <Trash />
+          <p className="sr-only">Delete asset</p>
+        </Button>
+      </div>
+      <img
+        className="h-full w-full object-cover transition group-hover:brightness-50"
+        src={img}
+        alt="AA"
+      />
+    </div>
+  );
 };
 
 const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
@@ -132,8 +158,19 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
         await utils.product.get.invalidate();
       },
     });
+  const { mutateAsync: editProduct, isPending: isEditingProduct } =
+    api.product.edit.useMutation({
+      onSuccess: async () => {
+        toast.success("Updated the product");
 
-  const [filesToUpload, setFilesToUpload] = useState<UploadFile[]>([]);
+        router.push("/products");
+
+        await utils.product.list.invalidate();
+        await utils.product.get.invalidate();
+      },
+    });
+  const { mutateAsync: getPresignedUrl } =
+    api.product.getUploadPresignedUrl.useMutation();
 
   const form = useForm({
     schema: createProductSchema,
@@ -156,26 +193,83 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
       shippingReturns:
         product?.shippingReturns ??
         "Free standard shipping on all orders. Express shipping available. Easy returns within 14 days. See our full policy for details.",
-      price: product?.price ? +product.price : undefined,
+      price: product?.price ? Math.round(+product.price / 100) : undefined,
+      filesToUpload: [],
+      existingAssets: product?.assets ?? [],
     },
   });
+  const filesToUpload = form.watch("filesToUpload");
+  const existingAssets = form.watch("existingAssets");
 
-  const previewAssets = useMemo(() => {
-    return filesToUpload.map(({ previewUrl }) => previewUrl);
-  }, [filesToUpload]);
+  // const previewAssets = useMemo(() => {
+  //   const assets = existingAssets.map((x) => x.publicUrl) ?? [];
 
-  console.log(filesToUpload);
+  //   for (const file of filesToUpload) {
+  //     assets.push(file.previewUrl);
+  //   }
+  //   return assets;
+  // }, [filesToUpload, existingAssets]);
+  const filePickerRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="container mx-auto">
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(async (values) => {
-            await createProduct({
+          onSubmit={form.handleSubmit(async ({ filesToUpload, ...values }) => {
+            const assets: Array<{ key: string }> = existingAssets.map(
+              (asset) => ({ key: asset.key }),
+            );
+
+            let newAssets;
+            try {
+              newAssets = await Promise.all(
+                filesToUpload.map(async (uploadFile) => {
+                  const { key, url } = await getPresignedUrl();
+                  try {
+                    const uploadResp = await fetch(url, {
+                      method: "PUT",
+                      body: uploadFile.file,
+                      headers: new Headers({
+                        "Content-Type": uploadFile.file.type,
+                      }),
+                    });
+                    if (!uploadResp.ok) {
+                      throw new Error(
+                        `failed to upload file ${uploadFile.file.name}`,
+                        { cause: uploadResp.statusText },
+                      );
+                    }
+                  } catch (e) {
+                    throw new Error(
+                      `failed to upload file ${uploadFile.file.name}`,
+                      { cause: e },
+                    );
+                  }
+                  return { uploadFile, key };
+                }),
+              );
+            } catch (e) {
+              console.error("failed to upload some asset", e);
+              toast.error("Failed to upload an asset. Please try again later.");
+              return;
+            }
+
+            for (const asset of newAssets) {
+              assets.push({
+                key: asset.key,
+              });
+            }
+
+            const data = {
               ...values,
               price: values.price * 100,
-              assets: [],
-            });
+              assets,
+            };
+            if (product) {
+              await editProduct({ ...data, id: product.id });
+            } else {
+              await createProduct(data);
+            }
           })}
         >
           <div className="mx-auto flex max-w-4xl flex-col gap-8 p-4">
@@ -258,44 +352,114 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
                 </FormItem>
               )}
             />
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-4 overflow-x-auto">
-                {previewAssets.map((previewUrl, idx) => {
-                  return (
-                    <div
-                      className="aspect-square h-auto w-80 min-w-60"
-                      key={idx}
-                    >
-                      <img
-                        className="h-full w-full object-cover"
-                        src={previewUrl}
-                        alt="AA"
-                      />
+            <FormField
+              control={form.control}
+              name="filesToUpload"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Images</FormLabel>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-4 overflow-x-auto">
+                      {existingAssets.map((asset, idx) => {
+                        return (
+                          <PreviewAsset
+                            key={asset.key}
+                            img={asset.publicUrl}
+                            onDelete={() => {
+                              form.setValue(
+                                "existingAssets",
+                                form
+                                  .getValues()
+                                  .existingAssets.filter(
+                                    (_, currIdx) => idx !== currIdx,
+                                  ),
+                              );
+                            }}
+                          />
+                        );
+                      })}
+                      {filesToUpload.map((uploadFile, idx) => {
+                        return (
+                          <PreviewAsset
+                            key={idx}
+                            img={uploadFile.previewUrl}
+                            onDelete={() => {
+                              form.setValue(
+                                "filesToUpload",
+                                form
+                                  .getValues()
+                                  .filesToUpload.filter(
+                                    (_, currIdx) => idx !== currIdx,
+                                  ),
+                              );
+                            }}
+                          />
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
-              <Input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => {
-                  const files = e.currentTarget.files;
-                  if (!files) {
-                    setFilesToUpload([]);
-                    return;
-                  }
-                  setFilesToUpload(
-                    Array.from(files).map((file) => {
-                      return {
-                        file,
-                        previewUrl: URL.createObjectURL(file),
-                      };
-                    }),
-                  );
-                }}
-              />
-            </div>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (!filePickerRef.current) return;
+                        filePickerRef.current.click();
+                      }}
+                    >
+                      Attach Files
+                    </Button>
+                    <Input
+                      className="sr-only"
+                      ref={filePickerRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => {
+                        const files = e.currentTarget.files;
+                        if (!files) {
+                          field.onChange([]);
+                          return;
+                        }
+
+                        if (
+                          product &&
+                          files.length + product.assets.length > 5
+                        ) {
+                          toast("Can't have more than 5 assets in total");
+                          return;
+                        }
+                        for (const file of files) {
+                          if (!file.type.startsWith("image")) {
+                            toast("Only images are allowed");
+                            return;
+                          }
+
+                          if (
+                            file.size >
+                            // 1 MB
+                            MAX_PRODUCT_ASSET_SIZE
+                          ) {
+                            toast(
+                              `Images larger than ${MAX_PRODUCT_ASSET_SIZE / ONE_MB}MB are not allowed`,
+                            );
+                            return;
+                          }
+                        }
+
+                        field.onChange(
+                          Array.from(files).map((file) => {
+                            return {
+                              file,
+                              previewUrl: URL.createObjectURL(file),
+                            };
+                          }),
+                        );
+                      }}
+                    />
+                  </div>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -348,7 +512,14 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isCreatingProduct}>
+            <Button
+              type="submit"
+              disabled={
+                isCreatingProduct ||
+                isEditingProduct ||
+                form.formState.isSubmitting
+              }
+            >
               {product ? "Update" : "Create"}
             </Button>
           </div>
