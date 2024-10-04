@@ -41,11 +41,7 @@ export default function PaymentsPage() {
   const { data: session } = useSession();
 
   const { skip, take, pageSize, setPageSize, page, setPage } = usePagination();
-  const {
-    data,
-    isLoading: isLoadingPayments,
-    isError: isGettingPaymentsError,
-  } = api.payment.list.useQuery(
+  const { data, isError: isGettingPaymentsError } = api.payment.list.useQuery(
     {
       skip,
       take,
@@ -117,132 +113,138 @@ export default function PaymentsPage() {
       </AlertDialog>
       <h1 className="mb-8 text-3xl font-bold">Orders</h1>
       <div className="space-y-6">
-        {payments?.length ? (
-          payments.map((payment) => {
-            const firstPayment = payment.items[0];
+        {payments ? (
+          payments.length ? (
+            payments.map((payment) => {
+              const firstPayment = payment.items[0];
 
-            return (
-              <Card key={payment.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Payment #{payment.id}</span>
-                    <span
-                      className={`rounded-full px-2 py-1 text-sm ${
-                        payment.status === PaymentStatus.PENDING
-                          ? "bg-yellow-100 text-yellow-800"
-                          : payment.status === PaymentStatus.SUCCESSFUL
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {payment.status.charAt(0).toUpperCase() +
-                        payment.status.slice(1)}
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-4 text-sm text-gray-500">
-                    Date: {payment.formattedCreatedAt}
-                  </p>
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="w-full [&>div]:border-none"
-                  >
-                    <AccordionItem value="items">
-                      <AccordionTrigger
-                        className={cn(
-                          "hover:no-underline",
-                          payment.items.length <= 1 && "[&>svg]:hidden",
-                        )}
-                        disabled={payment.items.length <= 1}
+              return (
+                <Card key={payment.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>Payment #{payment.id}</span>
+                      <span
+                        className={`rounded-full px-2 py-1 text-sm ${
+                          payment.status === PaymentStatus.PENDING
+                            ? "bg-yellow-100 text-yellow-800"
+                            : payment.status === PaymentStatus.SUCCESSFUL
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                        }`}
                       >
-                        <div className="flex items-center space-x-4">
-                          <div className="relative h-20 w-20 overflow-hidden rounded-md">
-                            <img
-                              className="h-full w-full object-cover"
-                              src={firstPayment?.product?.assets[0]?.publicUrl}
-                              alt={`An image of ${firstPayment?.product?.name ?? "Unknown roduct"}`}
-                            />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">
-                              {firstPayment?.product?.name ?? ""}
-                            </h3>
-                            <p className="text-start text-sm text-gray-500">
-                              $
-                              {+(
-                                firstPayment?.product?.price.toString() ?? "0"
-                              ) / 100}
-                            </p>
-                          </div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        {payment.items.slice(1).map((item) => (
-                          <div
-                            key={item.id}
-                            className="mt-4 flex items-center space-x-4"
-                          >
+                        {payment.status.charAt(0).toUpperCase() +
+                          payment.status.slice(1)}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="mb-4 text-sm text-gray-500">
+                      Date: {payment.formattedCreatedAt}
+                    </p>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full [&>div]:border-none"
+                    >
+                      <AccordionItem value="items">
+                        <AccordionTrigger
+                          className={cn(
+                            "hover:no-underline",
+                            payment.items.length <= 1 && "[&>svg]:hidden",
+                          )}
+                          disabled={payment.items.length <= 1}
+                        >
+                          <div className="flex items-center space-x-4">
                             <div className="relative h-20 w-20 overflow-hidden rounded-md">
                               <img
                                 className="h-full w-full object-cover"
-                                src={item.product?.assets[0]?.publicUrl}
-                                alt={`An image of ${item.product?.name ?? "Unknown roduct"}`}
+                                src={
+                                  firstPayment?.product?.assets[0]?.publicUrl
+                                }
+                                alt={`An image of ${firstPayment?.product?.name ?? "Unknown roduct"}`}
                               />
                             </div>
                             <div>
                               <h3 className="font-semibold">
-                                {item.product?.name}
+                                {firstPayment?.product?.name ?? ""}
                               </h3>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-start text-sm text-gray-500">
                                 $
-                                {+(item?.product?.price.toString() ?? "0") /
-                                  100}
+                                {+(
+                                  firstPayment?.product?.price.toString() ?? "0"
+                                ) / 100}
                               </p>
                             </div>
                           </div>
-                        ))}
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                  <Separator className="my-4" />
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold">Total</span>
-                    <span className="font-semibold">
-                      ${+(payment.total.toString() ?? "0") / 100}
-                    </span>
-                  </div>
-                </CardContent>
-                {payment.status === PaymentStatus.PENDING && (
-                  <CardFooter className="space-x-2">
-                    <Button variant={"default"} asChild>
-                      <a href={payment.paymentLink}>Complete Payment</a>
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        setPaymentToCancel(payment);
-                      }}
-                    >
-                      Expire Payment
-                    </Button>
-                  </CardFooter>
-                )}
-              </Card>
-            );
-          })
-        ) : isLoadingPayments ? (
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          {payment.items.slice(1).map((item) => (
+                            <div
+                              key={item.id}
+                              className="mt-4 flex items-center space-x-4"
+                            >
+                              <div className="relative h-20 w-20 overflow-hidden rounded-md">
+                                <img
+                                  className="h-full w-full object-cover"
+                                  src={item.product?.assets[0]?.publicUrl}
+                                  alt={`An image of ${item.product?.name ?? "Unknown roduct"}`}
+                                />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold">
+                                  {item.product?.name}
+                                </h3>
+                                <p className="text-sm text-gray-500">
+                                  $
+                                  {+(item?.product?.price.toString() ?? "0") /
+                                    100}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                    <Separator className="my-4" />
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Total</span>
+                      <span className="font-semibold">
+                        ${+(payment.total.toString() ?? "0") / 100}
+                      </span>
+                    </div>
+                  </CardContent>
+                  {payment.status === PaymentStatus.PENDING && (
+                    <CardFooter className="space-x-2">
+                      <Button variant={"default"} asChild>
+                        <a href={payment.paymentLink}>Complete Payment</a>
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setPaymentToCancel(payment);
+                        }}
+                      >
+                        Expire Payment
+                      </Button>
+                    </CardFooter>
+                  )}
+                </Card>
+              );
+            })
+          ) : (
+            <div className="flex min-h-[60vh] w-full items-center justify-center">
+              {"You don't have any orders."}
+            </div>
+          )
+        ) : isGettingPaymentsError ? (
+          <div className="flex min-h-[60vh] w-full items-center justify-center">
+            {"Failed to get orders"}
+          </div>
+        ) : (
           <>
             <Skeleton className="h-80 w-full" />
             <Skeleton className="h-80 w-full" />
           </>
-        ) : (
-          <div className="flex min-h-[60vh] w-full items-center justify-center">
-            {isGettingPaymentsError
-              ? "Failed to get orders"
-              : "You don't have any orders."}
-          </div>
         )}
       </div>
       <PaginationControls

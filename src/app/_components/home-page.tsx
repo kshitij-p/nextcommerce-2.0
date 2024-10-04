@@ -151,7 +151,7 @@ export default function HomePage() {
   const debouncedFilters = useDebounced(filters, 250);
 
   const { skip, take, pageSize, setPageSize, page, setPage } = usePagination();
-  const { data, isLoading: isLoadingProducts } = api.product.list.useQuery(
+  const { data, isError: isGettingProductsError } = api.product.list.useQuery(
     {
       skip,
       take,
@@ -217,44 +217,50 @@ export default function HomePage() {
               </Drawer>
             </div>
           </div>
-          {products?.length ? (
-            <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products.map((product) => {
-                const productLink = `/products/${product.id}`;
-                return (
-                  <div key={product.id} className="group">
-                    <Link
-                      href={productLink}
-                      className="inline-block aspect-[3/5] w-full overflow-hidden rounded-lg bg-gray-900"
-                    >
-                      <img
-                        className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
-                        src={product.assets[0]?.publicUrl}
-                        alt={product.name}
-                      />
-                    </Link>
-                    <div className="space-y-1">
+          {products ? (
+            products.length ? (
+              <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {products.map((product) => {
+                  const productLink = `/products/${product.id}`;
+                  return (
+                    <div key={product.id} className="group">
                       <Link
                         href={productLink}
-                        className="text-lg font-medium leading-none hover:underline"
+                        className="inline-block aspect-[3/5] w-full overflow-hidden rounded-lg bg-gray-900"
                       >
-                        {product.name}
+                        <img
+                          className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
+                          src={product.assets[0]?.publicUrl}
+                          alt={product.name}
+                        />
                       </Link>
-                      <p className="font-semibold leading-none">
-                        ${+product.price / 100}
-                      </p>
+                      <div className="space-y-1">
+                        <Link
+                          href={productLink}
+                          className="text-lg font-medium leading-none hover:underline"
+                        >
+                          {product.name}
+                        </Link>
+                        <p className="font-semibold leading-none">
+                          ${+product.price / 100}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : isLoadingProducts ? (
-            <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {productSkeletons}
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex h-full min-h-[55vh] w-full items-center justify-center">
+                No products match the given filters.
+              </div>
+            )
+          ) : isGettingProductsError ? (
+            <div className="flex h-full min-h-[55vh] w-full items-center justify-center">
+              Failed to get products.
             </div>
           ) : (
-            <div className="flex h-full min-h-[55vh] w-full items-center justify-center">
-              No products match the given filters.
+            <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {productSkeletons}
             </div>
           )}
           <PaginationControls
