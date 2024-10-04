@@ -38,6 +38,15 @@ export async function generateMetadata(
   }
 }
 
-export default function Page() {
+export const revalidate = 60;
+export const dynamicParams = true;
+
+export default async function Page({
+  params: { id },
+}: {
+  params: { id: string };
+}) {
+  await api.product.get.prefetch({ id });
+
   return <ProductDetailsPage />;
 }
