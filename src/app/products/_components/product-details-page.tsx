@@ -43,8 +43,9 @@ export default function ProductDetailsPage() {
     },
   );
   const { data } = api.product.list.useQuery(
-    { categories: [], take: 4 },
+    { categories: product ? [product.category] : [], take: 4 },
     {
+      enabled: !!product,
       staleTime: MAX_STALE_TIME,
       retry: false,
     },
