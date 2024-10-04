@@ -71,21 +71,8 @@ export default function CartPage() {
         return updatedData;
       });
     },
-    onSuccess: async ({ item: upsertedItem }) => {
-      utils.cart.get.setData(undefined, (data) => {
-        if (!data) return data;
-
-        const updatedData = structuredClone(data);
-
-        updatedData.item.cartItem = updatedData.item.cartItem.map((x) => {
-          if (x.productId === upsertedItem.productId) {
-            return { ...x, id: upsertedItem.id };
-          }
-          return x;
-        });
-
-        return updatedData;
-      });
+    onSuccess: async () => {
+      await utils.cart.invalidate();
     },
     onError: async () => {
       await utils.cart.get.invalidate();
@@ -110,7 +97,7 @@ export default function CartPage() {
         return updatedData;
       });
     },
-    onError: async () => {
+    onSettled: async () => {
       await utils.cart.get.invalidate();
     },
   });

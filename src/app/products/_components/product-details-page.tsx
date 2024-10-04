@@ -76,21 +76,8 @@ export default function ProductDetailsPage() {
           return updatedData;
         });
       },
-      onSuccess: async ({ item: upsertedItem }) => {
-        utils.cart.get.setData(undefined, (data) => {
-          if (!data) return data;
-
-          const updatedData = structuredClone(data);
-
-          updatedData.item.cartItem = updatedData.item.cartItem.map((x) => {
-            if (x.productId === upsertedItem.productId) {
-              return { ...x, id: upsertedItem.id };
-            }
-            return x;
-          });
-
-          return updatedData;
-        });
+      onSuccess: async () => {
+        await utils.cart.invalidate();
         toast("Added to cart");
       },
       onError: async () => {
