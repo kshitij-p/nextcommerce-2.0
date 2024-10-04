@@ -15,7 +15,7 @@ const AppLayout = ({ children }: React.PropsWithChildren) => {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky inset-0 z-40 border-b bg-background/75 backdrop-blur-sm">
+      <header className="sticky inset-0 z-40 border-b bg-background/60 backdrop-blur-[6px]">
         <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <Drawer direction="left">
             <DrawerTrigger asChild>
@@ -82,24 +82,24 @@ const AppLayout = ({ children }: React.PropsWithChildren) => {
               <>
                 <Link
                   href={`/account`}
-                  className="hidden text-sm hover:underline md:inline-block"
+                  className="hidden hover:underline md:inline-block"
                 >
                   Account
                 </Link>
                 <Link
                   href={`/account/orders`}
-                  className="hidden text-sm hover:underline md:inline-block"
+                  className="hidden hover:underline md:inline-block"
                 >
                   Orders
                 </Link>
                 <Link
                   href={`/account/cart`}
-                  className="hidden text-sm hover:underline md:inline-block"
+                  className="hidden hover:underline md:inline-block"
                 >
                   Cart
                 </Link>
                 <button
-                  className="hidden text-sm hover:underline md:inline-block"
+                  className="hidden hover:underline md:inline-block"
                   onClick={async () => {
                     await logout();
                   }}

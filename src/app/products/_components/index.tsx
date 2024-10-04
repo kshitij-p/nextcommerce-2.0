@@ -99,6 +99,7 @@ const MultiLineInput = ({
               }}
             />
             <Button
+              variant={"destructive"}
               type="button"
               onClick={() =>
                 onValueChange(value.filter((_, currIdx) => currIdx !== idx))
@@ -111,6 +112,7 @@ const MultiLineInput = ({
       })}
       <Button
         type="button"
+        variant={"secondary"}
         onClick={() => onValueChange([...value, ""])}
         disabled={value.length >= max}
       >
@@ -366,8 +368,13 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Images</FormLabel>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-4 overflow-x-auto">
+                  <div className="flex w-full flex-col gap-2 overflow-hidden">
+                    <div
+                      className="flex gap-4 overflow-x-auto"
+                      style={{
+                        scrollbarWidth: "thin",
+                      }}
+                    >
                       {existingAssets.map((asset, idx) => {
                         return (
                           <PreviewAsset
@@ -406,7 +413,9 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
                       })}
                     </div>
                     <Button
+                      variant={"outline"}
                       type="button"
+                      className="w-full max-w-40"
                       onClick={() => {
                         if (!filePickerRef.current) return;
                         filePickerRef.current.click();
@@ -414,7 +423,7 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
                     >
                       Attach Files
                     </Button>
-                    <Input
+                    <input
                       className="sr-only"
                       ref={filePickerRef}
                       type="file"
@@ -527,6 +536,7 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
               )}
             />
             <Button
+              className="w-full max-w-96 self-center"
               type="submit"
               disabled={
                 isCreatingProduct ||
