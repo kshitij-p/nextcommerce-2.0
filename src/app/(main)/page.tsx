@@ -1,4 +1,4 @@
-import ProductsPage from "../_components/home-page";
+import HomePage from "../_components/home-page";
 
 export const metadata = {
   title: "Products",
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <ProductsPage />;
+  return <HomePage />;
 }
