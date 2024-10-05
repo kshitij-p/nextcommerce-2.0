@@ -1,302 +1,190 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
-import React, { useMemo } from "react";
-import { Sliders } from "lucide-react";
-import { Input } from "~/components/ui/input";
-import { Slider, SliderThumb } from "~/components/ui/slider";
-import { Checkbox } from "~/components/ui/checkbox";
-import { api } from "~/trpc/react";
-import { MAX_STALE_TIME } from "~/constants";
-import Link from "next/link";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "~/components/ui/drawer";
-import useDebounced from "~/hooks/use-debounced";
-import { ProductCategory } from "@prisma/client";
-import { Skeleton } from "~/components/ui/skeleton";
-import { PaginationControls } from "~/components/pagination-controls";
-import { usePagination } from "~/hooks/use-pagination";
+
+import { useRef, useSyncExternalStore } from "react";
 import { Image } from "~/components/ui/image";
-import { imageAlts } from "~/lib/image-alt";
 import {
-  parseAsArrayOf,
-  parseAsInteger,
-  parseAsString,
-  type ParserBuilder,
-  useQueryState,
-} from "nuqs";
+  motion,
+  type SpringOptions,
+  useScroll,
+  type UseScrollOptions,
+  useSpring,
+  useTransform,
+} from "framer-motion";
+import Link from "next/link";
 
-const categories = [
-  {
-    name: "Footwear",
-    value: ProductCategory.FOOTWEAR,
-  },
-  {
-    name: "Pants",
-    value: ProductCategory.PANTS,
-  },
-  {
-    name: "Shirts",
-    value: ProductCategory.SHIRTS,
-  },
-  {
-    name: "Tshirts",
-    value: ProductCategory.TSHIRTS,
-  },
-  {
-    name: "Jackets",
-    value: ProductCategory.JACKETS,
-  },
-];
-
-type ProductFilters = {
-  price: [number, number];
-  name: string;
-  categories: string[];
+const subscribeToScrollChange = (onChange: () => void) => {
+  window.addEventListener("scroll", onChange);
+  return () => window.removeEventListener("scroll", onChange);
 };
 
-const MAX_PRICE = 510_000;
+const subscribeToResize = (onChange: () => void) => {
+  window.addEventListener("resize", onChange);
+  return () => window.addEventListener("resize", onChange);
+};
 
-const Filters = ({
-  filters,
-  setPrice,
-  setCategories,
-}: {
-  filters: ProductFilters;
-  setPrice: (val: [number, number]) => void;
-  setName: (val: string) => void;
-  setCategories: (val: string[]) => void;
-}) => {
-  const { price, categories: selectedCategories } = filters;
-  const formattedPriceRange = useMemo(() => {
-    let [startPrice, endPrice] = price;
+const initialBottom = 80;
+const targetBottom = 20;
 
-    startPrice = Math.round(startPrice / 100);
-    endPrice = Math.round(endPrice / 100);
+const targetFontSize = 12;
+const initialFontSize = 8;
 
-    return `$${startPrice} - $${endPrice >= MAX_PRICE ? "5000+" : endPrice}`;
-  }, [price]);
+const HeroSection = () => {
+  const screenHeight = useSyncExternalStore(
+    subscribeToResize,
+    () => window.innerHeight,
+    () => 0,
+  );
+
+  const scrollPos = useSyncExternalStore(
+    subscribeToScrollChange,
+    () => {
+      return Math.min(+(window.scrollY / (screenHeight / 6)).toFixed(5), 1);
+    },
+    () => 0,
+  );
+  const scrollPos2 = useSyncExternalStore(
+    subscribeToScrollChange,
+    () => {
+      return Math.min(+(window.scrollY / (screenHeight / 2)).toFixed(5), 1);
+    },
+    () => 0,
+  );
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="mb-2 text-start text-lg">Category</h3>
-        <div className="space-y-2">
-          {categories.map((c) => {
-            const id = `filter-category-check-${c.value}`;
-            return (
-              <div className="flex items-center" key={c.name}>
-                <Checkbox
-                  id={id}
-                  checked={selectedCategories.includes(c.value)}
-                  onCheckedChange={(val) =>
-                    setCategories(
-                      val
-                        ? [...selectedCategories, c.value]
-                        : selectedCategories.filter((curr) => curr !== c.value),
-                    )
-                  }
-                />
-                <label className="ml-2" htmlFor={id}>
-                  {c.name}
-                </label>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div>
-        <div className="mb-2 flex flex-col">
-          <span className="flex items-center gap-2">
-            <h3>
-              <span className="text-lg">Price</span>
-            </h3>
-            <span>{formattedPriceRange}</span>
-          </span>
-        </div>
-        <Slider
-          value={price}
-          onValueChange={(val: [number, number]) => setPrice(val)}
-          step={5000}
-          min={0}
-          max={MAX_PRICE}
+    <motion.section
+      animate={{
+        position: scrollPos2 >= 1 ? "absolute" : "fixed",
+        inset: 0,
+        top: scrollPos2 >= 1 ? "50vh" : "0",
+      }}
+      transition={{ duration: 0 }}
+    >
+      <motion.div
+        className="relative"
+        // animate={{ translateY: `calc(101vh * ${scrollPos2})` }}
+      >
+        <motion.span
+          className="absolute left-1/2 z-10 -translate-x-1/2 font-thin"
+          initial={{ top: `calc(5% + (3% * ${scrollPos}))`, opacity: 0 }}
+          animate={{
+            opacity: scrollPos2 > 0.1 ? 1 : 0,
+            fontSize: `calc(${initialFontSize}vw + (${scrollPos} * ${targetFontSize - initialFontSize}vw))`,
+            letterSpacing: `calc(1vw + (${scrollPos} * 4vw))`,
+          }}
         >
-          <SliderThumb />
-        </Slider>
-        <div className="mt-2 flex justify-between text-sm">
-          <span>$0</span>
-          <span>$5000+</span>
-        </div>
-      </div>
-    </div>
+          ACME
+        </motion.span>
+        <motion.video
+          tabIndex={-1}
+          className="h-screen w-full object-cover brightness-75"
+          src={"/hero.mp4"}
+          autoPlay={true}
+          loop
+          muted
+          style={{
+            filter: `blur(calc(${scrollPos2} * 8px)) brightness(calc(100% - (25% * ${scrollPos2})))`,
+          }}
+        />
+        <motion.div
+          className="absolute left-1/2 z-10 mb-16 flex w-max -translate-x-1/2 flex-col gap-4"
+          initial={{ opacity: 0 }}
+          animate={{
+            bottom: initialBottom - (initialBottom - targetBottom) * scrollPos,
+            opacity: scrollPos2 > 0.4 ? 1 : 0,
+          }}
+        >
+          <span className="text-[max(1.5vw,_16px)] font-semibold italic tracking-wider">
+            Acme Summer Collection 2024
+          </span>
+          <Link
+            href="/products"
+            passHref
+            className="mx-auto inline-flex h-12 max-w-max items-center justify-center rounded-[2px] bg-white px-8 py-2 text-xl text-black transition-all hover:rounded-md"
+          >
+            <button>Discover More</button>
+          </Link>
+        </motion.div>
+      </motion.div>
+    </motion.section>
   );
 };
 
-const productSkeletons = new Array(5).fill(undefined).map((_, idx) => (
-  <div className="space-y-2" key={idx}>
-    <div className="aspect-[3/5] w-full">
-      <Skeleton className="h-full w-full" />
-    </div>
-    <div className="space-y-1">
-      <Skeleton className="h-6 w-full max-w-48" />
-      <Skeleton className="h-5 w-full max-w-24" />
-    </div>
-  </div>
-));
+const useScrollYProgressWithSpring = (
+  options: UseScrollOptions & SpringOptions,
+) => {
+  const { scrollYProgress } = useScroll(options);
+  return useSpring(scrollYProgress, options);
+};
 
-export default function HomePage() {
-  const [price, setPrice] = useQueryState<[number, number]>(
-    "price",
-    parseAsArrayOf(parseAsInteger).withDefault([
-      0,
-      MAX_PRICE,
-    ]) as unknown as ParserBuilder<[number, number]> & {
-      readonly defaultValue: [number, number];
-    },
+const HomePage = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const scrollYProgress = useScrollYProgressWithSpring({
+    target: sectionRef,
+    offset: ["25% end", "60% end"],
+  });
+  const scrollYProgress2 = useScrollYProgressWithSpring({
+    target: sectionRef,
+    offset: ["60% end", "90% end"],
+  });
+
+  const blur1 = useTransform(
+    scrollYProgress,
+    [0, 1],
+    ["blur(10px)", "blur(0px)"],
   );
 
-  const [name, setName] = useQueryState("name", parseAsString.withDefault(""));
-  const [categories, setCategories] = useQueryState(
-    "categories",
-    parseAsArrayOf(parseAsString).withDefault([]),
+  const blur2 = useTransform(
+    scrollYProgress2,
+    [0, 1],
+    ["blur(10px)", "blur(0px)"],
   );
 
-  const filters = { categories, name, price } satisfies ProductFilters;
-  const debouncedFilters = useDebounced(filters, 250);
-
-  const { skip, take, pageSize, setPageSize, page, setPage } = usePagination();
-  const { data, isError: isGettingProductsError } = api.product.list.useQuery(
-    {
-      skip,
-      take,
-      name: debouncedFilters.name,
-      priceGte: debouncedFilters.price[0]
-        ? debouncedFilters.price[0]
-        : undefined,
-      priceLte:
-        debouncedFilters.price[1] >= MAX_PRICE
-          ? undefined
-          : debouncedFilters.price[1],
-      categories: debouncedFilters.categories as ProductCategory[],
-    },
-    {
-      staleTime: MAX_STALE_TIME,
-    },
-  );
-  const products = data?.items;
+  // console.log(scrollYProgress.);
 
   return (
     <div>
-      <div className="mx-auto flex w-full px-4 pb-8">
-        <aside className="sticky inset-0 mr-8 hidden w-64 pt-8 md:block">
-          <div className="sticky top-20">
-            <h2 className="mb-4 flex items-center text-xl font-semibold">
-              Filters
-            </h2>
-            <Filters
-              filters={filters}
-              setPrice={setPrice}
-              setCategories={setCategories}
-              setName={setName}
-            />
-          </div>
-        </aside>
-
-        <div className="flex flex-1 flex-col gap-8 pt-8">
-          <div className="w-full">
-            <label className="mb-1 inline-block" htmlFor="products-name-search">
-              Search
-            </label>
-            <div className="flex w-full items-center gap-4">
-              <Input
-                className="w-full max-w-[700px]"
-                id="products-name-search"
-                type="search"
-                value={filters.name}
-                onChange={(e) => {
-                  const value = e.currentTarget.value;
-                  void setName(value);
-                }}
+      <style>
+        {`* {
+          scroll-behavior: smooth;
+        }`}
+      </style>
+      <motion.main>
+        <HeroSection />
+        <section
+          className="mt-[150vh] flex h-[100vh] gap-[0.4vw] p-[0.8vw]"
+          ref={sectionRef}
+        >
+          <motion.div
+            className="h-full w-full"
+            style={{ opacity: scrollYProgress, filter: blur1 }}
+          >
+            <Link href={"/products"} passHref>
+              <Image
+                className={
+                  "h-full w-full rounded-sm object-cover transition-all duration-300 hover:scale-95 hover:rounded-lg hover:blur-[1px] hover:brightness-75"
+                }
+                src={"/hero-img-1.avif"}
+                alt={"A model in a green dress sitting on a chair"}
               />
-              <Drawer>
-                <DrawerTrigger className="flex items-center justify-center md:hidden">
-                  <Sliders className="h-5 w-5" />
-                </DrawerTrigger>
-                <DrawerContent>
-                  <DrawerHeader>
-                    <DrawerTitle className="text-center">Filters</DrawerTitle>
-                    <div>
-                      <Filters
-                        filters={filters}
-                        setPrice={setPrice}
-                        setCategories={setCategories}
-                        setName={setName}
-                      />
-                    </div>
-                  </DrawerHeader>
-                </DrawerContent>
-              </Drawer>
-            </div>
-          </div>
-          {products ? (
-            products.length ? (
-              <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {products.map((product) => {
-                  const productLink = `/products/${product.id}`;
-                  return (
-                    <div key={product.id} className="group">
-                      <Link
-                        href={productLink}
-                        className="inline-block aspect-[3/5] w-full overflow-hidden rounded-lg bg-gray-900"
-                      >
-                        <Image
-                          className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
-                          src={product.assets[0]?.publicUrl}
-                          alt={imageAlts.product(product)}
-                        />
-                      </Link>
-                      <div className="space-y-1">
-                        <Link
-                          href={productLink}
-                          className="text-lg font-medium leading-none hover:underline"
-                        >
-                          {product.name}
-                        </Link>
-                        <p className="font-semibold leading-none">
-                          ${+product.price / 100}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex h-full min-h-[55vh] w-full items-center justify-center">
-                No products match the given filters.
-              </div>
-            )
-          ) : isGettingProductsError ? (
-            <div className="flex h-full min-h-[55vh] w-full items-center justify-center">
-              Failed to get products.
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {productSkeletons}
-            </div>
-          )}
-          <PaginationControls
-            page={page}
-            pageSize={pageSize}
-            total={data?.total}
-            setPage={setPage}
-            setPageSize={setPageSize}
-          />
-        </div>
-      </div>
+            </Link>
+          </motion.div>
+          <motion.div
+            className="h-full w-full"
+            style={{ opacity: scrollYProgress2, filter: blur2 }}
+          >
+            <Link href={"/products"} passHref>
+              <Image
+                className={
+                  "h-full w-full rounded-sm object-cover transition-all duration-300 hover:scale-95 hover:rounded-lg hover:blur-[1px] hover:brightness-75"
+                }
+                src={"/hero-img-2.avif"}
+                alt={"A model in a red dress sitting on a chair"}
+              />
+            </Link>
+          </motion.div>
+        </section>
+      </motion.main>
     </div>
   );
-}
+};
+export default HomePage;

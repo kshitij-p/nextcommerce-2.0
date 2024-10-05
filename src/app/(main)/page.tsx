@@ -1,13 +1,11 @@
-import HomePage from "./_components/home-page";
+import HomePage from "../_components/home-page";
 
 export const metadata = {
-  title: "Acme Inc.",
+  title: "Products",
   description: "View sleek, elegant fashion products",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-const Page = () => {
+export default function Page() {
   return <HomePage />;
-};
-
-export default Page;
+}
