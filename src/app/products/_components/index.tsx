@@ -17,6 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { Image } from "~/components/ui/image";
 import { Input } from "~/components/ui/input";
 import {
   Select,
@@ -28,6 +29,7 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { MAX_PRODUCT_ASSET_SIZE, ONE_MB } from "~/constants";
 import { useForm } from "~/hooks/use-form";
+import { imageAlts } from "~/lib/image-alt";
 import { type SerializedProduct } from "~/server/services/product";
 import { api } from "~/trpc/react";
 
@@ -137,10 +139,10 @@ const PreviewAsset = ({
           <p className="sr-only">Delete asset</p>
         </Button>
       </div>
-      <img
+      <Image
         className="h-full w-full object-cover transition group-hover:brightness-50 group-focus-visible:brightness-50"
         src={img}
-        alt="AA"
+        alt={imageAlts.product()}
       />
     </div>
   );

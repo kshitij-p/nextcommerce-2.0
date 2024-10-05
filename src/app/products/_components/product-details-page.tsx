@@ -24,6 +24,8 @@ import { toast } from "sonner";
 import { Skeleton } from "~/components/ui/skeleton";
 import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
+import { Image } from "~/components/ui/image";
+import { imageAlts } from "~/lib/image-alt";
 
 export default function ProductDetailsPage() {
   const utils = api.useUtils();
@@ -103,10 +105,10 @@ export default function ProductDetailsPage() {
         <div className="space-y-4">
           <div className="aspect-[9/10] h-auto w-full rounded-lg object-cover">
             {product ? (
-              <img
+              <Image
                 className="h-full w-full rounded-lg object-cover"
                 src={activeImg?.publicUrl}
-                alt="Elegant Silk Dress"
+                alt={imageAlts.product(product)}
               />
             ) : (
               <Skeleton className="h-full w-full" />
@@ -121,9 +123,9 @@ export default function ProductDetailsPage() {
                     key={asset.id}
                     onClick={() => setActiveIdx(idx)}
                   >
-                    <img
+                    <Image
                       src={asset.publicUrl}
-                      alt="Dress Detail 1"
+                      alt={imageAlts.product(product)}
                       className="h-full w-full rounded-lg object-cover transition group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
                     />
                   </button>
@@ -295,9 +297,9 @@ export default function ProductDetailsPage() {
                 <CardContent className="p-4">
                   <Link className="group" href={`/products/${product.id}`}>
                     <div className="mb-4 aspect-[3/4] h-auto w-full overflow-hidden rounded-lg">
-                      <img
+                      <Image
                         src={product.assets[0]?.publicUrl}
-                        alt={`An image of ${product.name}`}
+                        alt={imageAlts.product(product)}
                         className="h-full w-full object-cover transition group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
                       />
                     </div>

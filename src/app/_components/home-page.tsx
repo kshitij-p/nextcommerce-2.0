@@ -20,6 +20,8 @@ import { ProductCategory } from "@prisma/client";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PaginationControls } from "~/components/pagination-controls";
 import { usePagination } from "~/hooks/use-pagination";
+import { Image } from "~/components/ui/image";
+import { imageAlts } from "~/lib/image-alt";
 
 const categories = [
   {
@@ -228,10 +230,10 @@ export default function HomePage() {
                         href={productLink}
                         className="inline-block aspect-[3/5] w-full overflow-hidden rounded-lg bg-gray-900"
                       >
-                        <img
+                        <Image
                           className="h-full w-full overflow-hidden object-cover object-center transition duration-300 group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
                           src={product.assets[0]?.publicUrl}
-                          alt={product.name}
+                          alt={imageAlts.product(product)}
                         />
                       </Link>
                       <div className="space-y-1">

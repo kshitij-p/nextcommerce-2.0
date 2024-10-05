@@ -35,6 +35,8 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PaginationControls } from "~/components/pagination-controls";
+import { Image } from "~/components/ui/image";
+import { imageAlts } from "~/lib/image-alt";
 
 export default function PaymentsPage() {
   const utils = api.useUtils();
@@ -156,12 +158,12 @@ export default function PaymentsPage() {
                         >
                           <div className="flex items-center space-x-4">
                             <div className="relative h-20 w-20 overflow-hidden rounded-md">
-                              <img
+                              <Image
                                 className="h-full w-full object-cover"
                                 src={
                                   firstPayment?.product?.assets[0]?.publicUrl
                                 }
-                                alt={`An image of ${firstPayment?.product?.name ?? "Unknown roduct"}`}
+                                alt={imageAlts.product(firstPayment?.product)}
                               />
                             </div>
                             <div>
@@ -184,10 +186,10 @@ export default function PaymentsPage() {
                               className="mt-4 flex items-center space-x-4"
                             >
                               <div className="relative h-20 w-20 overflow-hidden rounded-md">
-                                <img
+                                <Image
                                   className="h-full w-full object-cover"
                                   src={item.product?.assets[0]?.publicUrl}
-                                  alt={`An image of ${item.product?.name ?? "Unknown roduct"}`}
+                                  alt={imageAlts.product(item.product)}
                                 />
                               </div>
                               <div>

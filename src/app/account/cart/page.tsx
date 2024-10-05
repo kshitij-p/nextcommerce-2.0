@@ -24,6 +24,8 @@ import { MAX_STALE_TIME } from "~/constants";
 import { useSession } from "next-auth/react";
 import { cn } from "~/lib/utils";
 import { Skeleton } from "~/components/ui/skeleton";
+import { Image } from "~/components/ui/image";
+import { imageAlts } from "~/lib/image-alt";
 
 export default function CartPage() {
   const utils = api.useUtils();
@@ -149,10 +151,10 @@ export default function CartPage() {
                     <CardContent className="p-6">
                       <div className="flex items-center space-x-4">
                         <div className="relative h-24 w-24 overflow-hidden rounded-md">
-                          <img
+                          <Image
                             className="h-full w-full object-cover"
                             src={item.product.assets[0]?.publicUrl}
-                            alt={`An image of ${item.product.name}`}
+                            alt={imageAlts.product(item.product)}
                           />
                         </div>
                         <div className="flex-1">

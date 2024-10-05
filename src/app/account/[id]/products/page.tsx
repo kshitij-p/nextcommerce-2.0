@@ -24,6 +24,8 @@ import { type SerializedProduct } from "~/server/services/product";
 import { toast } from "sonner";
 import { usePagination } from "~/hooks/use-pagination";
 import { PaginationControls } from "~/components/pagination-controls";
+import { Image } from "~/components/ui/image";
+import { imageAlts } from "~/lib/image-alt";
 
 export default function AccountPage() {
   const { id } = useParams<{ id: string }>();
@@ -116,9 +118,9 @@ export default function AccountPage() {
                     href={productLink}
                     className="relative mb-4 block aspect-square h-auto w-full overflow-hidden rounded-md"
                   >
-                    <img
+                    <Image
                       src={primeAsset?.publicUrl}
-                      alt={`An image of ${product.name}`}
+                      alt={imageAlts.product(product)}
                       className="h-full w-full object-cover transition group-hover:scale-105 group-hover:brightness-75 group-focus-visible:scale-105 group-focus-visible:brightness-75"
                     />
                   </Link>
