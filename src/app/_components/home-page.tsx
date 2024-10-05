@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Sliders } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { Slider, SliderThumb } from "~/components/ui/slider";
@@ -22,6 +22,13 @@ import { PaginationControls } from "~/components/pagination-controls";
 import { usePagination } from "~/hooks/use-pagination";
 import { Image } from "~/components/ui/image";
 import { imageAlts } from "~/lib/image-alt";
+import {
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  type ParserBuilder,
+  useQueryState,
+} from "nuqs";
 
 const categories = [
   {
@@ -56,10 +63,13 @@ const MAX_PRICE = 510_000;
 
 const Filters = ({
   filters,
-  setFilters,
+  setPrice,
+  setCategories,
 }: {
   filters: ProductFilters;
-  setFilters: React.Dispatch<React.SetStateAction<ProductFilters>>;
+  setPrice: (val: [number, number]) => void;
+  setName: (val: string) => void;
+  setCategories: (val: string[]) => void;
 }) => {
   const { price, categories: selectedCategories } = filters;
   const formattedPriceRange = useMemo(() => {
@@ -84,12 +94,11 @@ const Filters = ({
                   id={id}
                   checked={selectedCategories.includes(c.value)}
                   onCheckedChange={(val) =>
-                    setFilters((filters) => ({
-                      ...filters,
-                      categories: val
+                    setCategories(
+                      val
                         ? [...selectedCategories, c.value]
                         : selectedCategories.filter((curr) => curr !== c.value),
-                    }))
+                    )
                   }
                 />
                 <label className="ml-2" htmlFor={id}>
@@ -111,12 +120,7 @@ const Filters = ({
         </div>
         <Slider
           value={price}
-          onValueChange={(val) =>
-            setFilters((curr) => ({
-              ...curr,
-              price: val as [number, number],
-            }))
-          }
+          onValueChange={(val: [number, number]) => setPrice(val)}
           step={5000}
           min={0}
           max={MAX_PRICE}
@@ -145,11 +149,23 @@ const productSkeletons = new Array(5).fill(undefined).map((_, idx) => (
 ));
 
 export default function HomePage() {
-  const [filters, setFilters] = useState<ProductFilters>({
-    price: [0, MAX_PRICE] as [number, number],
-    name: "",
-    categories: [],
-  });
+  const [price, setPrice] = useQueryState<[number, number]>(
+    "price",
+    parseAsArrayOf(parseAsInteger).withDefault([
+      0,
+      MAX_PRICE,
+    ]) as unknown as ParserBuilder<[number, number]> & {
+      readonly defaultValue: [number, number];
+    },
+  );
+
+  const [name, setName] = useQueryState("name", parseAsString.withDefault(""));
+  const [categories, setCategories] = useQueryState(
+    "categories",
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+
+  const filters = { categories, name, price } satisfies ProductFilters;
   const debouncedFilters = useDebounced(filters, 250);
 
   const { skip, take, pageSize, setPageSize, page, setPage } = usePagination();
@@ -181,7 +197,12 @@ export default function HomePage() {
             <h2 className="mb-4 flex items-center text-xl font-semibold">
               Filters
             </h2>
-            <Filters filters={filters} setFilters={setFilters} />
+            <Filters
+              filters={filters}
+              setPrice={setPrice}
+              setCategories={setCategories}
+              setName={setName}
+            />
           </div>
         </aside>
 
@@ -198,10 +219,7 @@ export default function HomePage() {
                 value={filters.name}
                 onChange={(e) => {
                   const value = e.currentTarget.value;
-                  setFilters((curr) => ({
-                    ...curr,
-                    name: value,
-                  }));
+                  void setName(value);
                 }}
               />
               <Drawer>
@@ -212,7 +230,12 @@ export default function HomePage() {
                   <DrawerHeader>
                     <DrawerTitle className="text-center">Filters</DrawerTitle>
                     <div>
-                      <Filters filters={filters} setFilters={setFilters} />
+                      <Filters
+                        filters={filters}
+                        setPrice={setPrice}
+                        setCategories={setCategories}
+                        setName={setName}
+                      />
                     </div>
                   </DrawerHeader>
                 </DrawerContent>
