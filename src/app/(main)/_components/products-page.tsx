@@ -148,7 +148,7 @@ const productSkeletons = new Array(5).fill(undefined).map((_, idx) => (
   </div>
 ));
 
-export default function HomePage() {
+export default function ProductsPage() {
   const [price, setPrice] = useQueryState<[number, number]>(
     "price",
     parseAsArrayOf(parseAsInteger).withDefault([

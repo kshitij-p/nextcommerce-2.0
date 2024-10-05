@@ -7,7 +7,6 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "~/components/ui/sonner";
 import { SessionProvider } from "~/components/session-provider";
-import AppLayout from "./_components/app-layout";
 
 export const metadata: Metadata = {
   title: "Nextcommerce",
@@ -28,7 +27,7 @@ export default function RootLayout({
         <TRPCReactProvider>
           <SessionProvider>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-              <AppLayout>{children}</AppLayout>
+              {children}
               <Toaster />
             </ThemeProvider>
           </SessionProvider>
