@@ -78,7 +78,9 @@ const HeroSection = () => {
             transition={{ duration: 0.3 }}
           >
             <div className="flex h-full w-full items-center justify-center text-[max(1.5vw,20px)] font-light tracking-[max(0.4vw,4px)]">
-              <span className="transition hover:scale-110">ACME</span>
+              <Link className="transition hover:scale-110" href={"#"}>
+                ACME
+              </Link>
             </div>
           </motion.header>
         ) : null}
@@ -109,6 +111,7 @@ const HeroSection = () => {
           >
             ACME
           </motion.span>
+
           <motion.video
             tabIndex={-1}
             className="h-screen w-full object-cover brightness-75"
@@ -117,7 +120,7 @@ const HeroSection = () => {
             loop
             muted
             style={{
-              filter: `blur(calc(${scrollPos2} * 8px)) brightness(calc(100% - (25% * ${scrollPos2})))`,
+              filter: `blur(calc(${scrollPos2} * 4px)) brightness(calc(100% - (25% * ${scrollPos2})))`,
             }}
           />
           <motion.div
