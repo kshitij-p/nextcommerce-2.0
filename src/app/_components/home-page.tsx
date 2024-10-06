@@ -11,7 +11,7 @@ import {
   useTransform,
 } from "framer-motion";
 import Link from "next/link";
-import { ProductCategory } from "@prisma/client";
+import { ProductCategory, ProductGender } from "@prisma/client";
 
 const subscribeToScrollChange = (onChange: () => void) => {
   window.addEventListener("scroll", onChange);
@@ -160,7 +160,10 @@ const HomePage = () => {
             className="group relative h-full w-full"
             style={{ opacity: scrollYProgress, filter: blur1 }}
           >
-            <Link href={"/products"} passHref>
+            <Link
+              href={`/products?${new URLSearchParams({ genders: ProductGender.FEMALE }).toString()}`}
+              passHref
+            >
               <Image
                 className={
                   "h-full w-full rounded-sm object-cover transition-all duration-300 group-hover:scale-95 group-hover:rounded-lg group-hover:blur-[1px] group-hover:brightness-75"

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { ProductCategory } from "@prisma/client";
+import { ProductCategory, ProductGender } from "@prisma/client";
 import { Plus, Trash } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -47,6 +47,7 @@ const createProductSchema = z.object({
   filesToUpload: z
     .array(z.object({ file: z.instanceof(File), previewUrl: z.string() }))
     .max(5),
+  gender: z.nativeEnum(ProductGender),
 });
 
 const categories = [
@@ -69,6 +70,25 @@ const categories = [
   {
     name: "Jackets",
     value: ProductCategory.JACKETS,
+  },
+];
+
+const genders = [
+  {
+    name: "Male",
+    value: ProductGender.MALE,
+  },
+  {
+    name: "Female",
+    value: ProductGender.FEMALE,
+  },
+  {
+    name: "Unisex",
+    value: ProductGender.UNISEX,
+  },
+  {
+    name: "Kids",
+    value: ProductGender.KIDS,
   },
 ];
 
@@ -208,19 +228,12 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
       price: product?.price ? Math.round(+product.price / 100) : undefined,
       filesToUpload: [],
       existingAssets: product?.assets ?? [],
+      gender: product?.gender,
     },
   });
   const filesToUpload = form.watch("filesToUpload");
   const existingAssets = form.watch("existingAssets");
 
-  // const previewAssets = useMemo(() => {
-  //   const assets = existingAssets.map((x) => x.publicUrl) ?? [];
-
-  //   for (const file of filesToUpload) {
-  //     assets.push(file.previewUrl);
-  //   }
-  //   return assets;
-  // }, [filesToUpload, existingAssets]);
   const filePickerRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -354,6 +367,36 @@ const CreateUpdateProduct = ({ product }: { product?: SerializedProduct }) => {
                         return (
                           <SelectItem key={c.value} value={c.value}>
                             {c.name}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gender</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select the targeted gender" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {genders.map((g) => {
+                        return (
+                          <SelectItem key={g.value} value={g.value}>
+                            {g.name}
                           </SelectItem>
                         );
                       })}

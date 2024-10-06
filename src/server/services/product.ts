@@ -5,6 +5,7 @@ import {
   type ProductAsset,
   ProductCategory,
   PaymentStatus,
+  ProductGender,
 } from "@prisma/client";
 import { db } from "../db";
 import { stripe } from "./stripe";
@@ -26,6 +27,7 @@ export const listProductsDto = z.object({
   priceLte: z.number().optional(),
   priceGte: z.number().optional(),
   categories: z.array(z.nativeEnum(ProductCategory)).optional(),
+  genders: z.array(z.nativeEnum(ProductGender)).optional(),
   skip: z.coerce.number().default(0),
   take: z.coerce.number().default(10),
 });
@@ -33,6 +35,7 @@ export const listProductsDto = z.object({
 const listProducts = async ({
   name,
   categories,
+  genders,
   priceGte,
   priceLte,
   skip,
@@ -57,6 +60,11 @@ const listProducts = async ({
     category: categories?.length
       ? {
           in: categories,
+        }
+      : undefined,
+    gender: genders?.length
+      ? {
+          in: genders,
         }
       : undefined,
     deleted: false,
@@ -124,6 +132,7 @@ export const createProductDto = z.object({
   careDetails: z.string().array().max(MAX_CARE_DETAILS),
   shippingReturns: z.string(),
   description: z.string(),
+  gender: z.nativeEnum(ProductGender),
 });
 export const createProduct = async (
   { name, assets, price, ...data }: TypeOf<typeof createProductDto>,
@@ -209,6 +218,7 @@ export const editProductDto = z.object({
   careDetails: z.string().array().max(MAX_CARE_DETAILS).optional(),
   shippingReturns: z.string().optional(),
   description: z.string().optional(),
+  gender: z.nativeEnum(ProductGender).optional(),
 });
 export const editProduct = async (
   { id, name, assets, price, ...data }: TypeOf<typeof editProductDto>,

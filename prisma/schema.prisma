@@ -78,6 +78,13 @@ enum ProductCategory {
     FOOTWEAR
 }
 
+enum ProductGender {
+    MALE
+    FEMALE
+    UNISEX
+    KIDS
+}
+
 model Product {
     id          String  @id @default(cuid())
     name        String
@@ -103,6 +110,8 @@ model Product {
     createdAt DateTime  @default(now())
     deleted   Boolean   @default(false)
     deletedAt DateTime?
+
+    gender ProductGender
 }
 
 model Cart {

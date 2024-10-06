@@ -16,7 +16,7 @@ import {
   DrawerTrigger,
 } from "~/components/ui/drawer";
 import useDebounced from "~/hooks/use-debounced";
-import { ProductCategory } from "@prisma/client";
+import { ProductCategory, ProductGender } from "@prisma/client";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PaginationControls } from "~/components/pagination-controls";
 import { usePagination } from "~/hooks/use-pagination";
@@ -53,10 +53,30 @@ const categories = [
   },
 ];
 
+const genders = [
+  {
+    name: "Male",
+    value: ProductGender.MALE,
+  },
+  {
+    name: "Female",
+    value: ProductGender.FEMALE,
+  },
+  {
+    name: "Unisex",
+    value: ProductGender.UNISEX,
+  },
+  {
+    name: "Kids",
+    value: ProductGender.KIDS,
+  },
+];
+
 type ProductFilters = {
   price: [number, number];
   name: string;
   categories: string[];
+  genders: string[];
 };
 
 const MAX_PRICE = 510_000;
@@ -65,13 +85,19 @@ const Filters = ({
   filters,
   setPrice,
   setCategories,
+  setGenders,
 }: {
   filters: ProductFilters;
   setPrice: (val: [number, number]) => void;
   setName: (val: string) => void;
   setCategories: (val: string[]) => void;
+  setGenders: (val: string[]) => void;
 }) => {
-  const { price, categories: selectedCategories } = filters;
+  const {
+    price,
+    categories: selectedCategories,
+    genders: selectedGenders,
+  } = filters;
   const formattedPriceRange = useMemo(() => {
     let [startPrice, endPrice] = price;
 
@@ -103,6 +129,32 @@ const Filters = ({
                 />
                 <label className="ml-2" htmlFor={id}>
                   {c.name}
+                </label>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div>
+        <h3 className="mb-2 text-start text-lg">Gender</h3>
+        <div className="space-y-2">
+          {genders.map((g) => {
+            const id = `filter-category-check-${g.value}`;
+            return (
+              <div className="flex items-center" key={g.name}>
+                <Checkbox
+                  id={id}
+                  checked={selectedGenders.includes(g.value)}
+                  onCheckedChange={(val) =>
+                    setGenders(
+                      val
+                        ? [...selectedGenders, g.value]
+                        : selectedGenders.filter((curr) => curr !== g.value),
+                    )
+                  }
+                />
+                <label className="ml-2" htmlFor={id}>
+                  {g.name}
                 </label>
               </div>
             );
@@ -164,8 +216,12 @@ export default function ProductsPage() {
     "categories",
     parseAsArrayOf(parseAsString).withDefault([]),
   );
+  const [genders, setGenders] = useQueryState(
+    "genders",
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
 
-  const filters = { categories, name, price } satisfies ProductFilters;
+  const filters = { categories, name, price, genders } satisfies ProductFilters;
   const debouncedFilters = useDebounced(filters, 250);
 
   const { skip, take, pageSize, setPageSize, page, setPage } = usePagination();
@@ -182,6 +238,7 @@ export default function ProductsPage() {
           ? undefined
           : debouncedFilters.price[1],
       categories: debouncedFilters.categories as ProductCategory[],
+      genders: debouncedFilters.genders as ProductGender[],
     },
     {
       staleTime: MAX_STALE_TIME,
@@ -202,6 +259,7 @@ export default function ProductsPage() {
               setPrice={setPrice}
               setCategories={setCategories}
               setName={setName}
+              setGenders={setGenders}
             />
           </div>
         </aside>
@@ -235,6 +293,7 @@ export default function ProductsPage() {
                         setPrice={setPrice}
                         setCategories={setCategories}
                         setName={setName}
+                        setGenders={setGenders}
                       />
                     </div>
                   </DrawerHeader>
