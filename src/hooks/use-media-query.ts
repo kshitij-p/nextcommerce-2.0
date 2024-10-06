@@ -23,9 +23,11 @@ const breakpoints = {
 } as const;
 type Breakpoint = keyof typeof breakpoints;
 
-export const useMediaQuery = (value: Breakpoint) => {
+export const useMediaQuery = (value: Breakpoint, initialValue = false) => {
   const [matches, setMatches] = useState(
-    window.matchMedia(breakpoints[value].query).matches,
+    typeof window !== "undefined"
+      ? window.matchMedia(breakpoints[value].query).matches
+      : initialValue,
   );
 
   useEffect(() => {
