@@ -11,6 +11,7 @@ import {
   useTransform,
 } from "framer-motion";
 import Link from "next/link";
+import { ProductCategory } from "@prisma/client";
 
 const subscribeToScrollChange = (onChange: () => void) => {
   window.addEventListener("scroll", onChange);
@@ -100,6 +101,7 @@ const HeroSection = () => {
             href="/products"
             passHref
             className="mx-auto inline-flex h-12 max-w-max items-center justify-center rounded-[2px] bg-white px-8 py-2 text-xl text-black transition-all hover:rounded-md"
+            tabIndex={-1}
           >
             <button>Discover More</button>
           </Link>
@@ -124,7 +126,7 @@ const HomePage = () => {
   });
   const scrollYProgress2 = useScrollYProgressWithSpring({
     target: sectionRef,
-    offset: ["60% end", "90% end"],
+    offset: ["60% end", "75% end"],
   });
 
   const blur1 = useTransform(
@@ -151,36 +153,46 @@ const HomePage = () => {
       <motion.main>
         <HeroSection />
         <section
-          className="mt-[150vh] flex h-[100vh] gap-[0.4vw] p-[0.8vw]"
+          className="mt-[150vh] flex h-[100vh] flex-col gap-2 p-[0.8vw] md:flex-row md:gap-[0.4vw]"
           ref={sectionRef}
         >
           <motion.div
-            className="h-full w-full"
+            className="group relative h-full w-full"
             style={{ opacity: scrollYProgress, filter: blur1 }}
           >
             <Link href={"/products"} passHref>
               <Image
                 className={
-                  "h-full w-full rounded-sm object-cover transition-all duration-300 hover:scale-95 hover:rounded-lg hover:blur-[1px] hover:brightness-75"
+                  "h-full w-full rounded-sm object-cover transition-all duration-300 group-hover:scale-95 group-hover:rounded-lg group-hover:blur-[1px] group-hover:brightness-75"
                 }
                 src={"/hero-img-1.avif"}
                 alt={"A model in a green dress sitting on a chair"}
               />
             </Link>
+            <button className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-nowrap rounded-[2px] border border-white bg-black/25 px-4 py-4 font-medium uppercase tracking-widest text-white opacity-0 backdrop-blur-sm transition duration-300 group-hover:opacity-100">
+              Explore Women&apos;s Collection
+            </button>
           </motion.div>
           <motion.div
-            className="h-full w-full"
+            className="group relative h-full w-full"
             style={{ opacity: scrollYProgress2, filter: blur2 }}
           >
-            <Link href={"/products"} passHref>
+            <Link
+              href={`/products?${new URLSearchParams({ categories: ProductCategory.FOOTWEAR }).toString()}`}
+              passHref
+              tabIndex={-1}
+            >
               <Image
                 className={
-                  "h-full w-full rounded-sm object-cover transition-all duration-300 hover:scale-95 hover:rounded-lg hover:blur-[1px] hover:brightness-75"
+                  "h-full w-full rounded-sm object-cover transition-all duration-300 group-hover:scale-95 group-hover:rounded-lg group-hover:blur-[1px] group-hover:brightness-75"
                 }
-                src={"/hero-img-2.avif"}
+                src={"/hero-img-2.webp"}
                 alt={"A model in a red dress sitting on a chair"}
               />
             </Link>
+            <button className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-[2px] border border-white bg-black/25 px-4 py-4 font-medium uppercase tracking-widest text-white opacity-0 backdrop-blur-sm transition duration-300 group-hover:opacity-100">
+              Explore Shoes Collection
+            </button>
           </motion.div>
         </section>
       </motion.main>
