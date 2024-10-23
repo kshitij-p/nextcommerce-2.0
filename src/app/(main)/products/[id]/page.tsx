@@ -3,14 +3,12 @@ import ProductDetailsPage from "../_components/product-details-page";
 import { api } from "~/trpc/server";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
   searchParams: Record<string, string | string[] | undefined>;
 };
 
-export async function generateMetadata(
-  { params }: Props,
-  parent: ResolvingMetadata,
-): Promise<Metadata> {
+export async function generateMetadata(props: Props, parent: ResolvingMetadata): Promise<Metadata> {
+  const params = await props.params;
   // read route params
   const id = params.id;
 
@@ -41,11 +39,17 @@ export async function generateMetadata(
 export const revalidate = 60;
 export const dynamicParams = true;
 
-export default async function Page({
-  params: { id },
-}: {
-  params: { id: string };
-}) {
+export default async function Page(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    id
+  } = params;
+
   await api.product.get.prefetch({ id });
 
   return <ProductDetailsPage />;
