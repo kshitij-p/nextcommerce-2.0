@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useSyncExternalStore } from "react";
+import { type RefObject, useRef, useSyncExternalStore } from "react";
 import { Image } from "~/components/ui/image";
 import {
   AnimatePresence,
@@ -60,7 +60,7 @@ const HeroSection = () => {
   );
 
   const acmeTitleRef = useRef<HTMLElement>(null);
-  const isInView = useInView(acmeTitleRef);
+  const isInView = useInView(acmeTitleRef as RefObject<HTMLElement>);
 
   const isMobile = useMediaQuery("md");
 
@@ -157,12 +157,16 @@ const useScrollYProgressWithSpring = (
 const HomePage = () => {
   const sectionRef = useRef<HTMLElement>(null);
   const scrollYProgress = useScrollYProgressWithSpring({
-    target: sectionRef,
+    target: sectionRef as RefObject<HTMLElement>,
     offset: ["25% end", "60% end"],
+    axis: "y",
+    bounce: 0,
   });
   const scrollYProgress2 = useScrollYProgressWithSpring({
-    target: sectionRef,
+    target: sectionRef as RefObject<HTMLElement>,
     offset: ["60% end", "75% end"],
+    axis: "y",
+    bounce: 0,
   });
 
   const blur1 = useTransform(
@@ -201,9 +205,9 @@ const HomePage = () => {
                 alt={"A model in a green dress sitting on a chair"}
               />
             </Link>
-            <button className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-nowrap rounded-[2px] border border-white bg-black/25 px-4 py-4 font-medium uppercase tracking-widest text-white backdrop-blur-sm transition duration-300 group-hover:opacity-100 md:opacity-0">
+            <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer text-nowrap rounded-[2px] border border-white bg-black/25 px-4 py-4 font-medium uppercase tracking-widest text-white backdrop-blur-sm transition duration-300 group-hover:opacity-100 md:opacity-0">
               Explore Women&apos;s Collection
-            </button>
+            </div>
           </motion.div>
           <motion.div
             className="group relative h-full w-full"
@@ -222,9 +226,9 @@ const HomePage = () => {
                 alt={"A model in a red dress sitting on a chair"}
               />
             </Link>
-            <button className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 text-nowrap rounded-[2px] border border-white bg-black/25 px-4 py-4 font-medium uppercase tracking-widest text-white backdrop-blur-sm transition duration-300 group-hover:opacity-100 md:opacity-0">
+            <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 cursor-pointer text-nowrap rounded-[2px] border border-white bg-black/25 px-4 py-4 font-medium uppercase tracking-widest text-white backdrop-blur-sm transition duration-300 group-hover:opacity-100 md:opacity-0">
               Explore Shoes Collection
-            </button>
+            </div>
           </motion.div>
         </section>
       </motion.main>
